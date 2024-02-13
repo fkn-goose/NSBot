@@ -47,6 +47,22 @@
             "Discord.Net": {
               "target": "Package",
               "version": "[3.13.1, )"
+            },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "SharpDotYaml.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[0.3.0, )"
+            },
+            "YamlDotNet": {
+              "target": "Package",
+              "version": "[15.1.1, )"
             }
           },
           "imports": [
