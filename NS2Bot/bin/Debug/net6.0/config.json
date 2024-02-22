@@ -1,1 +1,9 @@
-{"HelperTicketsCount":2}
+{
+  "Category": {
+    "NewHelperTicketsCategoryId": 1207408294885330975,
+    "HelperTicketsChannelId": 1209949900708782141,
+    "OldTicketsCategoryId": 1207428755862323260
+  },
+  "TicketsPair": { },
+  "HelperTicketsCount": 3
+}

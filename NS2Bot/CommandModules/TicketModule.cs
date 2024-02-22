@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace NS2Bot.CommandModules
             {
                 CustomId = "createHelperTicket",
                 Label = "Создать обращение к хелперу",
-                Style = ButtonStyle.Danger
+                Style = ButtonStyle.Primary
             };
 
             var component = new ComponentBuilder();
@@ -40,37 +41,49 @@ namespace NS2Bot.CommandModules
         }
 
         [ComponentInteraction("createHelperTicket")]
-        public async Task HelperButtonInput()
+        [RequireOwner]
+        public async Task TicketContextMenu()
         {
-            FileStream stream = new FileStream("config.json", FileMode.OpenOrCreate);
-            TicketCountModel model = JsonSerializer.Deserialize<TicketCountModel>(JsonDocument.Parse(stream));
+            var modular = new ModalBuilder()
+                .WithTitle("Создание обращение к хелперу")
+                .WithCustomId("createTicketMenu")
+                .AddTextInput("Подробно опишите суть обращения", "reason", TextInputStyle.Paragraph, "Cменить позывной, помочь с подключением к серверу и т.д.");
 
-            var channel = await Context.Guild.CreateTextChannelAsync($"Хелпер-тикет-{model.HelperTicketsCount}", prop => prop.CategoryId = newHelperTicketsId);
-            await channel.SyncPermissionsAsync();
-            await channel.AddPermissionOverwriteAsync(Context.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel:PermValue.Allow));
-
-            var embedBuilder = new EmbedBuilder()
-                .WithTitle("Test Title")
-                .WithDescription("Test Description")
-                .WithColor(Color.Blue);
-
-            var buttonBuilder = new ButtonBuilder()
-            {
-                CustomId = $"closeHelperTicket",
-                Label = "Закрыть обращение",
-                Style = ButtonStyle.Primary
-            };
-
-            var component = new ComponentBuilder();
-            component.WithButton(buttonBuilder);
-
-            await channel.SendMessageAsync(embed: embedBuilder.Build(), components: component.Build());
-            await RespondAsync();
-
-            model.HelperTicketsCount++;
-            stream.Dispose();
-            File.WriteAllText("config.json",JsonSerializer.Serialize<TicketCountModel>(model));
+            await RespondWithModalAsync(modular.Build());
         }
+
+        //[ComponentInteraction("createHelperTicket")]
+        //public async Task HelperButtonInput()
+        //{
+        //    FileStream stream = new FileStream("config.json", FileMode.OpenOrCreate);
+        //    ConfigModel model = JsonSerializer.Deserialize<ConfigModel>(JsonDocument.Parse(stream));
+
+        //    var channel = await Context.Guild.CreateTextChannelAsync($"Хелпер-тикет-{model.HelperTicketsCount}", prop => prop.CategoryId = newHelperTicketsId);
+        //    await channel.SyncPermissionsAsync();
+        //    await channel.AddPermissionOverwriteAsync(Context.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel:PermValue.Allow));
+
+        //    var embedBuilder = new EmbedBuilder()
+        //        .WithTitle("Test Title")
+        //        .WithDescription("Test Description")
+        //        .WithColor(Color.Blue);
+
+        //    var buttonBuilder = new ButtonBuilder()
+        //    {
+        //        CustomId = $"closeHelperTicket",
+        //        Label = "Закрыть обращение",
+        //        Style = ButtonStyle.Primary
+        //    };
+
+        //    var component = new ComponentBuilder();
+        //    component.WithButton(buttonBuilder);
+
+        //    await channel.SendMessageAsync(embed: embedBuilder.Build(), components: component.Build());
+        //    await RespondAsync();
+
+        //    model.HelperTicketsCount++;
+        //    stream.Dispose();
+        //    File.WriteAllText("config.json",JsonSerializer.Serialize<ConfigModel>(model));
+        //}
 
         [ComponentInteraction("closeHelperTicket")]
         public async Task CloseHelperTicket()
