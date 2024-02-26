@@ -9,13 +9,21 @@ using Newtonsoft.Json;
 using NS2Bot.Handlers;
 using NS2Bot.Logging;
 using NS2Bot.Models;
+using System.Reflection;
+using System.Text.Json;
+using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace NS2Bot
 {
+    public static class MainData
+    {
+        public static ConfigModel configData;
+        public static ConsoleLogger logger;
+    }
     public class Program
     {
         private DiscordSocketClient _client;
-        //Add global variable json
         public static Task Main(string[] args) => new Program().MainAsync();
 
         public async Task MainAsync()
@@ -59,6 +67,16 @@ namespace NS2Bot
 
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
+            MainData.logger = new ConsoleLogger();
+            var configContext = File.ReadAllText("config.json");
+            MainData.configData = JsonConvert.DeserializeObject<ConfigModel>(configContext);
+
+            Timer dataTimer = new Timer(60000);
+            dataTimer.Elapsed += new ElapsedEventHandler(RefreshDataEvent);
+            dataTimer.AutoReset = true;
+            dataTimer.Start();
+            await MainData.logger.Log(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
+
             _client.ModalSubmitted += ModalEventHandler;
 
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
@@ -78,64 +96,81 @@ namespace NS2Bot
             await Task.Delay(-1);
         }
 
-        public async Task ModalEventHandler(SocketModal modal)
+        private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)
+        {
+            File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(MainData.configData)).Wait();
+            await MainData.logger.Log(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Data refreshed!"));
+        }
+
+        public Task ModalEventHandler(SocketModal modal)
         {
             if (modal.Type == InteractionType.ModalSubmit)
             {
                 switch (modal.Data.CustomId)
                 {
                     case "createTicketMenu":
-                        var configContext = File.ReadAllText("config.json");
-                        ConfigModel model = JsonConvert.DeserializeObject<ConfigModel>(configContext);
-                        int ticketCount = model.HelperTicketsCount;
-                        model.HelperTicketsCount++;
-                        await File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(model));
-
-                        var guild = _client.GetGuild(modal.GuildId.Value);
-                        var ticketChannel = await guild.CreateTextChannelAsync($"Хелпер-тикет-{ticketCount}", prop => prop.CategoryId = model.Category.NewHelperTicketsCategoryId);
-
-                        await ticketChannel.SyncPermissionsAsync();
-                        await ticketChannel.AddPermissionOverwriteAsync(modal.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
-
-                        var embedChannelTicket = new EmbedBuilder()
-                           .WithTitle($"Тикет #{model.HelperTicketsCount}")
-                           .WithDescription(modal.Data.Components.First(x => x.CustomId == "reason").Value)
-                           .WithColor(Color.Blue);
-
-                        var buttonCloseTicket = new ButtonBuilder()
+                        Task.Run(async () =>
                         {
-                            CustomId = "closeHelperTicket",
-                            Label = "Закрыть обращение",
-                            Style = ButtonStyle.Primary
-                        };
+                            var ticketCount = MainData.configData.HelperTicketsCount;
+                            MainData.configData.HelperTicketsCount++;
 
-                        var component = new ComponentBuilder();
-                        component.WithButton(buttonCloseTicket);
+                            var guild = _client.GetGuild(modal.GuildId.Value);
+                            var ticketChannel = await guild.CreateTextChannelAsync($"Хелпер-тикет-{ticketCount}", prop => prop.CategoryId = MainData.configData.Category.NewHelperTicketsCategoryId);
 
-                        await ticketChannel.SendMessageAsync(embed: embedChannelTicket.Build(), components: component.Build());
-                        var ticketMenu = guild.GetTextChannel(model.Category.HelperTicketsChannelId);
+                            await ticketChannel.SyncPermissionsAsync();
+                            await ticketChannel.AddPermissionOverwriteAsync(modal.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
 
-                        var embedHelperTicket = new EmbedBuilder()
-                            .WithTitle($"Тикет #{ticketCount}")
-                            .WithColor(Color.DarkOrange);
+                            var embedChannelTicket = new EmbedBuilder()
+                               .WithTitle($"Тикет #{ticketCount}")
+                               .WithDescription(modal.Data.Components.First(x => x.CustomId == "reason").Value)
+                               .WithColor(Color.Blue);
 
-                        var buttonTakeTicket = new ButtonBuilder()
-                        {
-                            CustomId = "takeTicket",
-                            Label = "Взять тикет в работу",
-                            Style = ButtonStyle.Primary
-                        };
+                            var buttonCloseTicket = new ButtonBuilder()
+                            {
+                                CustomId = "closeHelperTicket",
+                                Label = "Закрыть обращение",
+                                Style = ButtonStyle.Primary
+                            };
 
-                        component = new ComponentBuilder();
-                        component.WithButton(buttonTakeTicket);
-                        var helperButton = await ticketMenu.SendMessageAsync(embed: embedHelperTicket.Build(), components: component.Build());
+                            var component = new ComponentBuilder();
+                            component.WithButton(buttonCloseTicket);
 
-                        model.MessageChannelTickerPair.Add(helperButton.Id, ticketChannel.Id);
+                            await ticketChannel.SendMessageAsync(embed: embedChannelTicket.Build(), components: component.Build());
+                            var ticketMenu = guild.GetTextChannel(MainData.configData.Category.HelperTicketsChannelId);
 
-                        await modal.RespondAsync();
-                        break;
+                            var embedHelperTicket = new EmbedBuilder()
+                                .WithTitle($"Тикет #{ticketCount} [Открыто]")
+                                .WithDescription($"Обращение создал - {MentionUtils.MentionUser(modal.User.Id)}")
+                                .WithCurrentTimestamp()
+                                .WithColor(Color.LightGrey);
+
+                            var buttonTakeTicket = new ButtonBuilder()
+                            {
+                                CustomId = "takeTicket",
+                                Label = "Взять тикет в работу",
+                                Style = ButtonStyle.Primary
+                            };
+
+                            component = new ComponentBuilder();
+                            component.WithButton(buttonTakeTicket);
+                            var helperButton = await ticketMenu.SendMessageAsync(embed: embedHelperTicket.Build(), components: component.Build());
+                            await modal.RespondAsync($"Тикет создан, {MentionUtils.MentionChannel(ticketChannel.Id)}. Как только появится свободный хелпер, он возьмет его в работу.", ephemeral: true)
+                                .ContinueWith(task =>
+                                {
+                                    if (MainData.configData.MessageChannelTickerPair == null)
+                                        MainData.configData.MessageChannelTickerPair = new Dictionary<ulong, ulong>();
+
+                                    //Добавляю ключ "Открытый тикет" к каналу тикета
+                                    MainData.configData.MessageChannelTickerPair.Add(helperButton.Id, ticketChannel.Id);
+                                });
+                        });
+                        return Task.CompletedTask;
+
+                    default:
+                        return Task.CompletedTask;
                 }
             }
+            return Task.CompletedTask;
         }
 
         private static bool IsDebug()

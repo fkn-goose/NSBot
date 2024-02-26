@@ -4,6 +4,7 @@
     "HelperTicketsChannelId": 1209949900708782141,
     "OldTicketsCategoryId": 1207428755862323260
   },
-  "TicketsPair": { },
-  "HelperTicketsCount": 3
+  "HelperTicketsCount": 20,
+  "MessageChannelTickerPair": {
+  }
 }
