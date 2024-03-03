@@ -20,6 +20,7 @@ namespace NS2Bot.Handlers
 
         public async Task InitializeAsync()
         {
+            await _interactionService.AddModulesAsync(Assembly.GetAssembly(typeof(ModalComponent)), _serviceProvider);
             await _interactionService.AddModulesAsync(Assembly.GetEntryAssembly(), _serviceProvider);
 
             _client.InteractionCreated += HandleIntercation;
@@ -27,6 +28,12 @@ namespace NS2Bot.Handlers
             _interactionService.SlashCommandExecuted += SlashCommandExecuted;
             _interactionService.ContextCommandExecuted += ContextCommandExecuted;
             _interactionService.ComponentCommandExecuted += ComponentCommandExecuted;
+            _interactionService.ModalCommandExecuted += ModalCommandExecuted;
+        }
+
+        private Task ModalCommandExecuted(ModalCommandInfo info, IInteractionContext context, IResult result)
+        {
+            return Task.CompletedTask;
         }
 
         private Task ComponentCommandExecuted(ComponentCommandInfo info, IInteractionContext context, IResult result)

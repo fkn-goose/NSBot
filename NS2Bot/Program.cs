@@ -20,6 +20,7 @@ namespace NS2Bot
     {
         public static ConfigModel configData;
         public static ConsoleLogger logger;
+        public static string publicPdaWebhook;
     }
     public class Program
     {
@@ -90,6 +91,8 @@ namespace NS2Bot
                     await commands.RegisterCommandsGloballyAsync(true);
             };
 
+            MainData.publicPdaWebhook = config["webhooks:publicPDA"];
+
             await _client.LoginAsync(Discord.TokenType.Bot, config["tokens:discord"]);
             await _client.StartAsync();
 
@@ -99,7 +102,7 @@ namespace NS2Bot
         private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)
         {
             File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(MainData.configData)).Wait();
-            await MainData.logger.Log(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Data refreshed!"));
+            await MainData.logger.Log(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         }
 
         public Task ModalEventHandler(SocketModal modal)
@@ -108,7 +111,7 @@ namespace NS2Bot
             {
                 switch (modal.Data.CustomId)
                 {
-                    case "createTicketMenu":
+                    case "createHelperTicket":
                         Task.Run(async () =>
                         {
                             var ticketCount = MainData.configData.HelperTicketsCount;

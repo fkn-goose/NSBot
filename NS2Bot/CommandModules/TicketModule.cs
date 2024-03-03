@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using System.Runtime.CompilerServices;
+using System.Reflection;
 
 namespace NS2Bot.CommandModules
 {

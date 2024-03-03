@@ -55,9 +55,10 @@ D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.AssemblyInfoInputs.cache
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.AssemblyInfo.cs
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.csproj.CoreCompileInputs.cache
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.sourcelink.json
-D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.csproj.CopyComplete
+D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.csproj.Up2Date
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.dll
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\refint\NS2Bot.dll
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.pdb
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.genruntimeconfig.cache
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\ref\NS2Bot.dll
+D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\DiscordRPC.dll
