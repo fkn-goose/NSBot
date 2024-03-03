@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NS2Bot")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+898b1f704b84dc5c55bad7ce7e4d7dc44c22fa73")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c138c3e4af940672e888c9105a0274331bfa0213")]
 [assembly: System.Reflection.AssemblyProductAttribute("NS2Bot")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NS2Bot")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

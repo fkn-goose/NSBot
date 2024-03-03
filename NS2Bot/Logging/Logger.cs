@@ -15,6 +15,6 @@ namespace NS2Bot.Logging
         {
             _guid = Guid.NewGuid().ToString()[^4..];
         }
-        public abstract Task Log(LogMessage message);
+        public abstract Task LogAsync(LogMessage message);
     }
 }

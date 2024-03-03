@@ -9,6 +9,6 @@ namespace NS2Bot.Logging
 {
     public interface ILogger
     {
-        public Task Log(LogMessage message);
+        public Task LogAsync(LogMessage message);
     }
 }

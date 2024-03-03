@@ -76,12 +76,12 @@ namespace NS2Bot
             dataTimer.Elapsed += new ElapsedEventHandler(RefreshDataEvent);
             dataTimer.AutoReset = true;
             dataTimer.Start();
-            await MainData.logger.Log(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
+            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
             _client.ModalSubmitted += ModalEventHandler;
 
-            _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
-            commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
+            _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
+            commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
 
             _client.Ready += async () =>
             {
@@ -102,7 +102,7 @@ namespace NS2Bot
         private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)
         {
             File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(MainData.configData)).Wait();
-            await MainData.logger.Log(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
+            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         }
 
         public Task ModalEventHandler(SocketModal modal)

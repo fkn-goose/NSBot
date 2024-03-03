@@ -9,9 +9,9 @@ namespace NS2Bot.Logging
 {
     public class ConsoleLogger : Logger
     {
-        public override async Task Log(LogMessage message)
+        public override async Task LogAsync(LogMessage message)
         {
-            Task.Run(() => Console.WriteLine($"guid:{_guid} : " + message));
+            await Task.Run(() => Console.WriteLine($"guid:{_guid} : " + message));
         }
     }
 }
