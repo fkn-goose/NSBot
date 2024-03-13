@@ -9,6 +9,7 @@ D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Discord.Net.Interactions.dll
 D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Discord.Net.Rest.dll
 D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Discord.Net.Webhook.dll
 D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Discord.Net.WebSocket.dll
+D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\DiscordRPC.dll
 D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Microsoft.Extensions.Configuration.dll
 D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Microsoft.Extensions.Configuration.Abstractions.dll
 D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\Microsoft.Extensions.Configuration.Binder.dll
@@ -61,4 +62,3 @@ D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\refint\NS2Bot.dll
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.pdb
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\NS2Bot.genruntimeconfig.cache
 D:\Projects\NS2Bot\NS2Bot\obj\Debug\net6.0\ref\NS2Bot.dll
-D:\Projects\NS2Bot\NS2Bot\bin\Debug\net6.0\DiscordRPC.dll

@@ -1,3 +1,13 @@
 
 NS2Bot/token.txt
 /NS2Bot/bin/Debug/net6.0/config.yml
+/NS2Bot/bin/Release
+/NS2Bot/obj/Release
+/NS2Bot/obj/Debug
+/NS2Bot/obj
+/.vs/NS2Bot/v17
+/.vs/NS2Bot/FileContentIndex
+/.vs/NS2Bot/v17
+/.vs/ProjectEvaluation
+/NS2Bot/Properties/PublishProfiles
+/NS2Bot/obj/Debug/net6.0

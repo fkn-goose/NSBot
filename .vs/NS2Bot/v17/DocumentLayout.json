@@ -3,28 +3,28 @@
   "WorkspaceRootPath": "D:\\Projects\\NS2Bot\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|d:\\projects\\ns2bot\\ns2bot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|D:\\Projects\\NS2Bot\\ns2bot\\commandmodules\\groupmodule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\commandmodules\\groupmodule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|D:\\Projects\\NS2Bot\\ns2bot\\commandmodules\\pdamodule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\commandmodules\\pdamodule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|D:\\Projects\\NS2Bot\\ns2bot\\models\\webhookmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\models\\webhookmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projects\\NS2Bot\\NS2Bot\\bin\\Debug\\net6.0\\Anonim.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:NS2Bot\\bin\\Debug\\net6.0\\Anonim.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|d:\\projects\\ns2bot\\ns2bot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|D:\\Projects\\NS2Bot\\ns2bot\\commandmodules\\ticketmodule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\commandmodules\\ticketmodule.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projects\\NS2Bot\\NS2Bot\\bin\\Debug\\net6.0\\config.yml||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:NS2Bot\\bin\\Debug\\net6.0\\config.yml||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|D:\\Projects\\NS2Bot\\ns2bot\\models\\configmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\models\\configmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|D:\\Projects\\NS2Bot\\ns2bot\\models\\webhookmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{144C6A6D-4A88-49E8-9AA2-7F3211D0F4E4}|NS2Bot\\NS2Bot.csproj|solutionrelative:ns2bot\\models\\webhookmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,8 +34,34 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GroupModule.cs",
+              "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\CommandModules\\GroupModule.cs",
+              "RelativeDocumentMoniker": "NS2Bot\\CommandModules\\GroupModule.cs",
+              "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\CommandModules\\GroupModule.cs",
+              "RelativeToolTip": "NS2Bot\\CommandModules\\GroupModule.cs",
+              "ViewState": "AQIAAAUAAAAAAAAAAAAxwAgAAAAMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-12T16:57:07.7Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\Program.cs",
+              "RelativeDocumentMoniker": "NS2Bot\\Program.cs",
+              "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\Program.cs",
+              "RelativeToolTip": "NS2Bot\\Program.cs",
+              "ViewState": "AQIAAD4AAAAAAAAAAAAIwFgAAABlAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-12T17:37:52.139Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -44,37 +70,26 @@
               "RelativeDocumentMoniker": "NS2Bot\\CommandModules\\PDAModule.cs",
               "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\CommandModules\\PDAModule.cs",
               "RelativeToolTip": "NS2Bot\\CommandModules\\PDAModule.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABsAAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAkAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-03T12:54:10.609Z"
+              "WhenOpened": "2024-03-03T12:54:10.609Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ConfigModel.cs",
+              "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\Models\\ConfigModel.cs",
+              "RelativeDocumentMoniker": "NS2Bot\\Models\\ConfigModel.cs",
+              "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\Models\\ConfigModel.cs",
+              "RelativeToolTip": "NS2Bot\\Models\\ConfigModel.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABQAAAApAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-12T16:51:45.821Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "config.yml",
-              "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\bin\\Debug\\net6.0\\config.yml",
-              "RelativeDocumentMoniker": "NS2Bot\\bin\\Debug\\net6.0\\config.yml",
-              "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\bin\\Debug\\net6.0\\config.yml",
-              "RelativeToolTip": "NS2Bot\\bin\\Debug\\net6.0\\config.yml",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAANAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
-              "WhenOpened": "2024-03-03T12:50:47.969Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Anonim.json",
-              "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\bin\\Debug\\net6.0\\Anonim.json",
-              "RelativeDocumentMoniker": "NS2Bot\\bin\\Debug\\net6.0\\Anonim.json",
-              "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\bin\\Debug\\net6.0\\Anonim.json",
-              "RelativeToolTip": "NS2Bot\\bin\\Debug\\net6.0\\Anonim.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAABAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2024-02-29T19:19:31.873Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "WebhookModel.cs",
               "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\Models\\WebhookModel.cs",
               "RelativeDocumentMoniker": "NS2Bot\\Models\\WebhookModel.cs",
@@ -86,28 +101,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\Program.cs",
-              "RelativeDocumentMoniker": "NS2Bot\\Program.cs",
-              "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\Program.cs",
-              "RelativeToolTip": "NS2Bot\\Program.cs",
-              "ViewState": "AQIAACkAAAAAAAAAAAApwEgAAAAnAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-02-29T14:43:00.523Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "TicketModule.cs",
               "DocumentMoniker": "D:\\Projects\\NS2Bot\\NS2Bot\\CommandModules\\TicketModule.cs",
               "RelativeDocumentMoniker": "NS2Bot\\CommandModules\\TicketModule.cs",
               "ToolTip": "D:\\Projects\\NS2Bot\\NS2Bot\\CommandModules\\TicketModule.cs",
               "RelativeToolTip": "NS2Bot\\CommandModules\\TicketModule.cs",
-              "ViewState": "AQIAADkAAAAAAAAAAAAowE4AAAA5AAAA",
+              "ViewState": "AQIAAFsAAAAAAAAAAAAcwAIAAAATAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-02-28T12:11:04.197Z"
+              "WhenOpened": "2024-02-28T12:11:04.197Z",
+              "EditorCaption": ""
             }
           ]
         }

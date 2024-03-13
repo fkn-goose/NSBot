@@ -85,10 +85,10 @@ namespace NS2Bot
 
             _client.Ready += async () =>
             {
-                if (IsDebug())
-                    await commands.RegisterCommandsToGuildAsync(UInt64.Parse(config["testGuild"]), true);
-                else
-                    await commands.RegisterCommandsGloballyAsync(true);
+                //if (IsDebug())
+                await commands.RegisterCommandsToGuildAsync(UInt64.Parse(config["testGuild"]), true);
+                //else
+                //    await commands.RegisterCommandsGloballyAsync(true);
             };
 
             MainData.publicPdaWebhook = config["webhooks:publicPDA"];
