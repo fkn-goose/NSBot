@@ -11,3 +11,6 @@ NS2Bot/token.txt
 /.vs/ProjectEvaluation
 /NS2Bot/Properties/PublishProfiles
 /NS2Bot/obj/Debug/net6.0
+/NS2Bot/obj/Debug/net6.0/NS2Bot.AssemblyInfo.cs
+/.gitignore
+/NS2Bot/obj/Debug/net6.0/NS2Bot.AssemblyInfoInputs.cache

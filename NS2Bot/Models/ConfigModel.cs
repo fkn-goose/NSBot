@@ -17,8 +17,8 @@ namespace NS2Bot.Models
         }
         public class Group
         {
-            public string Name { get; set; }
             public uint Id {  get; set; }
+            public ulong Leader { get; set; }
             public List<ulong> Members { get; set; }
         }
     }
