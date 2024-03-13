@@ -92,7 +92,8 @@ namespace NS2Bot.CommandModules
             }
 
             MainData.configData.Groups.Where(x => x.Id == (uint)groupsEnum).FirstOrDefault().Members.Remove(user.Id);
-
+            if (MainData.configData.Groups.Where(x => x.Id == (uint)groupsEnum).FirstOrDefault().Leader == user.Id)
+                MainData.configData.Groups.Where(x => x.Id == (uint)groupsEnum).FirstOrDefault().Leader = 0;
             await RespondAsync($"Игрок успешно удален из групппировки {GetValueExtension.GetDescription(groupsEnum)}", ephemeral: true);
         }
 
