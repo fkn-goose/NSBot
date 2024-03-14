@@ -1,4 +1,5 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using Discord.WebSocket;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,63 +10,78 @@ namespace NS2Bot.CommandModules
     {
         Regex radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
 
-        [SlashCommand("startradiocreation", "Инициализация радио канала")]
+        [SlashCommand("startradio", "Инициализация радио канала")]
         [RequireOwner]
         public async Task InitRadioChannel()
         {
             MainData.configData.Category.RadioInitChannelId = Context.Channel.Id;
-
             MainData.configData.IsRadioEnabled = true;
-
-            //Context.Client.MessageReceived += VoiceCreator;
-            //Context.Client.UserVoiceStateUpdated += VoiceRemover;
 
             await RespondAsync("Канал выбран как создание частот", ephemeral: true);
         }
 
-        //private async Task VoiceCreator(SocketMessage message)
-        //{
-        //    var sender = Context.Guild.GetUser(message.Author.Id);
-        //    if (message.Channel.Id != MainData.configData.Category.RadioInitChannelId)
-        //        return;
+        [SlashCommand("stopradio", "Отлючение радио канала")]
+        [RequireOwner]
+        public async Task StopRadioChannel()
+        {
+            MainData.configData.Category.RadioInitChannelId = 0;
+            MainData.configData.IsRadioEnabled = false;
 
-        //    if(!radioname.IsMatch(message.Content))
-        //    {
-        //        await RespondAsync("Сообщение должно иметь вид 000.000, где вместо нулей могут быть любые цифры", ephemeral: true);
-        //        await message.DeleteAsync();
-        //        return;
-        //    }
+            await RespondAsync("Создание частот отключено", ephemeral: true);
+        }
 
-        //    if(string.Equals(message.Content, "000.000"))
-        //    {
-        //        await RespondAsync("Недопустимое значение частоты", ephemeral: true);
-        //        await message.DeleteAsync();
-        //        return;
-        //    }
+        [SlashCommand("частота", "Подключиться к определенной частоте")]
+        public async Task VoiceCreator([Summary("Частота")] string freq)
+        {
+            if (!MainData.configData.IsRadioEnabled)
+            {
+                await RespondAsync("Создание частот отключено");
+                return;
+            }
 
-        //    var redirectionChannel = Context.Guild.GetVoiceChannel(message.Channel.Id);
-        //    if (!redirectionChannel.ConnectedUsers.Contains(message.Author))
-        //    {
-        //        await RespondAsync("Вы не подлючены к каналу \"Переадресация\"", ephemeral: true);
-        //        await message.DeleteAsync();
-        //        return;
-        //    }    
+            if (!radioname.IsMatch(freq))
+            {
+                await RespondAsync("Сообщение должно иметь вид 000.000, где вместо нулей могут быть любые цифры", ephemeral: true);
+                return;
+            }
 
-        //    var category = Context.Guild.CategoryChannels.FirstOrDefault(x => x.Channels.Contains((SocketGuildChannel)message.Channel));
+            if (string.Equals(freq, "000.000"))
+            {
+                await RespondAsync("Недопустимое значение частоты", ephemeral: true);
+                return;
+            }
 
-        //    var userVoice = await Context.Guild.CreateVoiceChannelAsync(message.Content, prop => prop.CategoryId = category.Id);
-        //    await userVoice.AddPermissionOverwriteAsync(sender, new Discord.OverwritePermissions(moveMembers: Discord.PermValue.Allow));
-        //    if (MainData.configData.Category.ActiveRadios == null)
-        //        MainData.configData.Category.ActiveRadios = new List<ulong>();
-        //    MainData.configData.Category.ActiveRadios.Add(userVoice.Id);
+            SocketVoiceChannel? redirectionChannel = Context.Channel as SocketVoiceChannel;
+            if (redirectionChannel != null && !redirectionChannel.ConnectedUsers.Contains(Context.User))
+            {
+                await RespondAsync("Вы не подлючены к каналу \"Создание частоты\"", ephemeral: true);
+                return;
+            }
 
-        //    await sender.ModifyAsync(x=>x.ChannelId = userVoice.Id);
-        //}
+            await DeferAsync(ephemeral: true);
 
-        //private async Task VoiceRemover(SocketUser user, SocketVoiceState state1, SocketVoiceState state2)
-        //{
-        //    if (MainData.configData.Category.ActiveRadios.Contains(state1.VoiceChannel.Id) && state1.VoiceChannel.ConnectedUsers.Count == 0)
-        //        await state1.VoiceChannel.DeleteAsync();
-        //}
+            var category = ((SocketTextChannel)Context.Channel).Category;
+            var curRadios = Context.Guild.Channels.Where(x => (x is IVoiceChannel) && ((SocketTextChannel)x)?.Category.Id == category.Id);
+
+            var radioExists = curRadios.Where(x => string.Equals(x.Name, freq + " mhz")).FirstOrDefault();
+            if (radioExists != null)
+            {
+                await ((SocketGuildUser)Context.User).ModifyAsync(x => x.ChannelId = radioExists.Id);
+                await FollowupAsync($"Вы подключены к частоте {freq}", ephemeral: true);
+                return;
+            }
+
+            var newVoice = await Context.Guild.CreateVoiceChannelAsync(freq + " mhz", prop => prop.CategoryId = category.Id);
+            await newVoice.SyncPermissionsAsync();
+            await newVoice.AddPermissionOverwriteAsync(Context.User, new Discord.OverwritePermissions(viewChannel: Discord.PermValue.Allow, moveMembers: Discord.PermValue.Allow));
+
+            if (MainData.configData.Category.ActiveRadios == null)
+                MainData.configData.Category.ActiveRadios = new List<ulong>();
+            MainData.configData.Category.ActiveRadios.Add(newVoice.Id);
+
+            await ((SocketGuildUser)Context.User).ModifyAsync(x => x.ChannelId = newVoice.Id);
+
+            await FollowupAsync($"Вы подключены к частоте {freq}", ephemeral: true);
+        }
     }
 }

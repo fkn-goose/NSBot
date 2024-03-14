@@ -82,7 +82,6 @@ namespace NS2Bot
             await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
             _client.ModalSubmitted += ModalEventHandler;
-            _client.MessageReceived += VoiceCreator;
             _client.UserVoiceStateUpdated += VoiceRemover;
 
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
@@ -110,57 +109,19 @@ namespace NS2Bot
             await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         }
 
-        private async Task VoiceCreator(SocketMessage message)
+        private async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after)
         {
             if (!MainData.configData.IsRadioEnabled)
                 return;
 
-            if (message.Channel.Id != MainData.configData.Category.RadioInitChannelId)
-                return;
-
-            if (!MainData.radioname.IsMatch(message.Content))
-            {
-                await message.Channel.SendMessageAsync("Сообщение должно иметь вид 000.000, где вместо нулей могут быть любые цифры");
-                await message.DeleteAsync();
-                return;
-            }
-
-            if (string.Equals(message.Content, "000.000"))
-            {
-                await message.Channel.SendMessageAsync("Недопустимое значение частоты");
-                await message.DeleteAsync();
-                return;
-            }
-
-            var guild = ((SocketGuildChannel)message.Channel).Guild;
-            var sender = guild.GetUser(message.Author.Id);
-            var redirectionChannel = guild.GetVoiceChannel(message.Channel.Id);
-            if (!redirectionChannel.ConnectedUsers.Contains(message.Author))
-            {
-                await message.Channel.SendMessageAsync("Вы не подлючены к каналу \"Переадресация\"");
-                await message.DeleteAsync();
-                return;
-            }
-
-            var category = guild.CategoryChannels.FirstOrDefault(x => x.Channels.Contains((SocketGuildChannel)message.Channel));
-
-            var userVoice = await guild.CreateVoiceChannelAsync(message.Content, prop => prop.CategoryId = category.Id);
-            await userVoice.AddPermissionOverwriteAsync(sender, new Discord.OverwritePermissions(moveMembers: Discord.PermValue.Allow));
             if (MainData.configData.Category.ActiveRadios == null)
-                MainData.configData.Category.ActiveRadios = new List<ulong>();
-            MainData.configData.Category.ActiveRadios.Add(userVoice.Id);
-
-            await sender.ModifyAsync(x => x.ChannelId = userVoice.Id);
-            await message.DeleteAsync();
-        }
-
-        private async Task VoiceRemover(SocketUser user, SocketVoiceState state1, SocketVoiceState state2)
-        {
-            if (!MainData.configData.IsRadioEnabled)
                 return;
 
-            if (MainData.configData.Category.ActiveRadios.Contains(state1.VoiceChannel.Id) && state1.VoiceChannel.ConnectedUsers.Count == 0)
-                await state1.VoiceChannel.DeleteAsync();
+            if (before.VoiceChannel == null || before.VoiceChannel == after.VoiceChannel)
+                return;
+
+            if (MainData.configData.Category.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
+                await before.VoiceChannel.DeleteAsync();
         }
 
         public Task ModalEventHandler(SocketModal modal)
