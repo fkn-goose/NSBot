@@ -121,8 +121,11 @@ namespace NS2Bot
                 return;
 
             if (MainData.configData.Category.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
+            {
+                MainData.configData.Category.ActiveRadios.Remove(before.VoiceChannel.Id);
                 await before.VoiceChannel.DeleteAsync();
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
+                await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
+            }
         }
 
         public Task ModalEventHandler(SocketModal modal)
