@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using NS2Bot.Models;
@@ -13,13 +12,20 @@ namespace NS2Bot.CommandModules
     {
         List<SocketMessage> webhookMessages = new List<SocketMessage>();
 
+        [SlashCommand("setpdachannel", "Установить общий-кпк канал")]
+        [RequireOwner]
+        public async Task SetPublicPDAChannel()
+        {
+            MainData.configData.PublicPDAChannelId = Context.Channel.Id;
+            await RespondAsync("Канал установлен как \"Общий-кпк\"", ephemeral: true);
+        }
+
         [SlashCommand("anonymous", "Отправить анонимное сообщение")]
-        [Alias("anon", "an")]
-        public async Task AnonymousMessage([Discord.Interactions.Summary(name: "Сообщение", description: "Текст сообщения")] string message)
+        public async Task AnonymousMessage([Summary(name: "Сообщение", description: "Текст сообщения")] string message)
         {
             webhookMessages = new List<SocketMessage>();
             HttpClient client = new HttpClient();
-
+            
             WebhookModel webhookModel = new()
             {
                 username = "Аноним",
@@ -30,7 +36,7 @@ namespace NS2Bot.CommandModules
             webhookModel.content = message;
             List<SocketMessage> messages = new List<SocketMessage>();
 
-            Context.Client.MessageReceived += WebhookMessages;
+            Context.Client.MessageReceived += WebhookPDAMessages;
 
             string json = JsonSerializer.Serialize(webhookModel);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -47,7 +53,7 @@ namespace NS2Bot.CommandModules
 
         private async void SendLog(object? sender, ElapsedEventArgs e, string message, string responseContent)
         {
-            Context.Client.MessageReceived -= WebhookMessages;
+            Context.Client.MessageReceived -= WebhookPDAMessages;
 
             var webhookMessageUrl = webhookMessages.FirstOrDefault()?.GetJumpUrl();
 
@@ -67,10 +73,13 @@ namespace NS2Bot.CommandModules
             await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "Anon", responseContent));
         }
 
-        private async Task WebhookMessages(SocketMessage message)
+        private async Task WebhookPDAMessages(SocketMessage message)
         {
             if (!message.Author.IsWebhook)
-                await Task.CompletedTask;
+                return;
+
+            if (MainData.configData.PublicPDAChannelId == 0 || message.Channel.Id != MainData.configData.PublicPDAChannelId)
+                return;
 
             webhookMessages.Add(message);
             await Task.CompletedTask;

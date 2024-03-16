@@ -8,6 +8,7 @@ namespace NS2Bot.Models
         public int HelperTicketsCount { get; set; }
         public Dictionary<ulong,ulong> MessageChannelTickerPair { get; set; }
         public ulong PDALogsChannelId { get; set; } 
+        public ulong PublicPDAChannelId { get;set; }
         public List<Group> Groups { get; set; }
         public bool IsRadioEnabled { get; set; }
         public class Categories
