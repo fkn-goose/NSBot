@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.Interactions;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,7 @@ namespace NS2Bot
                 services.AddSingleton(config)
                 .AddSingleton(x => new DiscordSocketClient(new DiscordSocketConfig
                 {
-                    GatewayIntents = Discord.GatewayIntents.AllUnprivileged,
+                    GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.MessageContent,
                     LogGatewayIntentWarnings = false,
                     AlwaysDownloadUsers = true,
                     LogLevel = Discord.LogSeverity.Debug
@@ -76,13 +77,14 @@ namespace NS2Bot
             MainData.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
 
             Timer dataTimer = new Timer(60000);
-            dataTimer.Elapsed += new ElapsedEventHandler(RefreshDataEvent);
+            dataTimer.Elapsed += RefreshDataEvent;
             dataTimer.AutoReset = true;
             dataTimer.Start();
             await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
             _client.ModalSubmitted += ModalEventHandler;
             _client.UserVoiceStateUpdated += VoiceRemover;
+            _client.MessageReceived += RndMessagesDelete;
 
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
             commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
@@ -101,6 +103,30 @@ namespace NS2Bot
             await _client.StartAsync();
 
             await Task.Delay(-1);
+        }
+
+        private async Task RndMessagesDelete(SocketMessage message)
+        {
+            if (!MainData.configData.IsRadioEnabled)
+                return;
+
+            if (message.Author.IsBot || message.Author.IsWebhook)
+                return;
+
+            if (message.Channel.Id != MainData.configData.Category.RadioInitChannelId)
+                return;
+
+            await message.DeleteAsync();
+            var msg = await message.Channel.SendMessageAsync("Для создания рации **напишите** комманду\n/частота");
+            Timer dataTimer = new Timer(5000);
+            dataTimer.AutoReset = false;
+            dataTimer.Elapsed +=(sender, e) => { DeleteRndMessage(sender, e, msg); };
+            dataTimer.Start();
+        }
+
+        private void DeleteRndMessage(object sender, ElapsedEventArgs e, RestUserMessage msg)
+        {
+            msg.DeleteAsync().Wait();
         }
 
         private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)

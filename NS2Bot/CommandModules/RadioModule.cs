@@ -17,6 +17,7 @@ namespace NS2Bot.CommandModules
             MainData.configData.Category.RadioInitChannelId = Context.Channel.Id;
             MainData.configData.IsRadioEnabled = true;
 
+            await Context.Channel.SendMessageAsync("Для создания или подключения к частоте **напишите** команду /частота");
             await RespondAsync("Канал выбран как создание частот", ephemeral: true);
         }
 
