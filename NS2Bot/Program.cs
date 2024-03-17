@@ -22,7 +22,8 @@ namespace NS2Bot
     {
         public static ConfigModel configData;
         public static ConsoleLogger logger;
-        public static string publicPdaWebhook;
+        public static string publicPdaWebHook;
+        public static string systemInfoWebHook;
         public static Regex radioname;
     }
     public class Program
@@ -97,7 +98,8 @@ namespace NS2Bot
                 //    await commands.RegisterCommandsGloballyAsync(true);
             };
 
-            MainData.publicPdaWebhook = config["webhooks:publicPDA"];
+            MainData.publicPdaWebHook = config["webhooks:publicPDA"];
+            MainData.systemInfoWebHook = config["webhooks:systemInfo"];
 
             await _client.LoginAsync(Discord.TokenType.Bot, config["tokens:discord"]);
             await _client.StartAsync();
