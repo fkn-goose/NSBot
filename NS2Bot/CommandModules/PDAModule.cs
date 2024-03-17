@@ -68,22 +68,22 @@ namespace NS2Bot.CommandModules
 
         private List<string> WarStartMessages = new List<string>()
         {
-            "Сталкера, внимание!  Отношения между {group1} и {group2} натянулись до предела. {group1} объявляет войну своему оппоненту. \r\n\r\nНаши источники докладывают, что {group1} использует повязки {l1} цвета, а {group2} - {r1}. Будьте осторожны рядом с такими группами, не словите случайную пулю."
+            "Сталкера, внимание! Отношения между {group1} и {group2} натянулись до предела. {group1} объявляет войну своему оппоненту. \r\n\r\nНаши источники докладывают, что {group1} использует повязки {l1} цвета, а {group2} - {r1}. Будьте осторожны рядом с такими группами, не словите случайную пулю."
         };
 
         private List<string> WarNewAllieMessages = new List<string>()
         {
-            "Сталкера, внимание! По последним данным {group2} присоединилась к войне на стороне {group1}! \r\n\r\nНа текущий момент {grouplist} воюют против {grouplist2}.\r\nНапоминаем всем, что первая сторона ходит в повязках {l1} цвета, а вторая в повязках {r1} цвета."
+            "Сталкера, внимание! По последним данным группировка {group2} присоединилась к войне на стороне группировки {group1}! \r\n\r\nНа текущий момент {grouplist} воюет против группировки {grouplist2}.\r\nНапоминаем всем, что первая сторона ходит в повязках {l1} цвета, а вторая в повязках {r1} цвета."
         };
 
         private List<string> WarLeaveMessage = new List<string>()
         {
-            "Вестник сталкера на связи! Наши источники сообщают, что {groupleave} выходит из войны! Условия выхода точно нам неизвестны, но думаю {grouplead} остались довольны. \r\n\r\nВ войне остались {grouplist} с повязками {l1} цвета и {grouplist2} с повязками {r1} цвета c другой стороны. Пожелаем удачи обеим сторонам, а сталкерам посоветуем не вставать у них на дороге."
+            "Вестник сталкера на связи! Наши источники сообщают, что {groupleave} выходит из войны! Условия выхода точно нам неизвестны, но думаю ребята из группировки {grouplead} остались довольны. \r\n\r\nВ войне остались {grouplist} с повязками {l1} цвета и {grouplist2} с повязками {r1} цвета. Пожелаем удачи обеим сторонам, а сталкерам посоветуем не вставать у них на дороге."
         };
 
         private List<string> WarEndMessage = new List<string>()
         {
-
+            "Свежие новости! Группировка {grouplose} капитулировала на условиях группировки {groupwin}! Война окончена, дышим глубже."
         };
 
         [SlashCommand("начать", "Объявление войны")]
@@ -94,6 +94,7 @@ namespace NS2Bot.CommandModules
         {
             DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(MainData.systemInfoWebHook);
 
+            await DeferAsync(ephemeral: true);
             Random rnd = new Random();
             var selectedMessge = WarStartMessages[rnd.Next(0, WarStartMessages.Count - 1)];
 
@@ -117,7 +118,7 @@ namespace NS2Bot.CommandModules
                 TargetAllies = new List<uint>(),
             });
 
-            await RespondAsync($"Группировка {initGroup.GetDescription()} объявила войну группировке {targetGroup.GetDescription()}", ephemeral: true);
+            await FollowupAsync($"Группировка {initGroup.GetDescription()} объявила войну группировке {targetGroup.GetDescription()}", ephemeral: true);
         }
 
         [SlashCommand("добавить", "Добавить союзника одной из сторон")]
@@ -174,80 +175,115 @@ namespace NS2Bot.CommandModules
         }
 
         [SlashCommand("убрать", "убрать группировку из войны")]
-        public async Task LeaveWar([Summary(name: "Группировка", "Группировка которая выходит из войны")] GroupsEnum group)
+        public async Task LeaveWar([Summary(name: "Группировка", "Группировка которая выходит из войны")] GroupsEnum groupLeave)
         {
             if (MainData.configData.Wars == null)
                 return;
 
-            ConfigModel.War curentWar = MainData.configData.Wars.Where(x => x.Agressor == (uint)group || x.Target == (uint)group || x.AgressorAllies.Contains((uint)group) || x.TargetAllies.Contains((uint)group)).FirstOrDefault();
+            ConfigModel.War curentWar = MainData.configData.Wars.Where(x => x.Agressor == (uint)groupLeave || x.Target == (uint)groupLeave || x.AgressorAllies.Contains((uint)groupLeave) || x.TargetAllies.Contains((uint)groupLeave)).FirstOrDefault();
             if (curentWar == null)
             {
                 await RespondAsync("Группировка не учавствует ни в одной из войн", ephemeral: true);
                 return;
             }
 
-            await DeferAsync(ephemeral:true);
-            if (curentWar.AgressorAllies.Contains((uint)group))
+            await DeferAsync(ephemeral: true);
+
+            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(MainData.systemInfoWebHook);
+
+            var selectedMessge = string.Empty;
+            if (curentWar.AgressorAllies.Contains((uint)groupLeave))
             {
-                curentWar.AgressorAllies.Remove((uint)group);
+                curentWar.AgressorAllies.Remove((uint)groupLeave);
 
                 Random rnd = new Random();
-                var selectedMessge = WarLeaveMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
+                selectedMessge = WarLeaveMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
                 ColorReplacer((ColorsEnum)curentWar.AgreesorColor, (ColorsEnum)curentWar.TargetColor, ref selectedMessge);
 
                 var groups = GroupList(curentWar);
 
-                selectedMessge = selectedMessge.Replace("{groupleave}", group.GetDescription());
+                selectedMessge = selectedMessge.Replace("{groupleave}", groupLeave.GetDescription());
                 selectedMessge = selectedMessge.Replace("{grouplead}", ((GroupsEnum)curentWar.Target).GetDescription());
                 selectedMessge = selectedMessge.Replace("{grouplist}", groups[0]);
                 selectedMessge = selectedMessge.Replace("{grouplist2}", groups[1]);
+
+                await FollowupAsync("Группировка удалена из войны", ephemeral: true);
             }
-            else if (curentWar.TargetAllies.Contains((uint)group))
+            else if (curentWar.TargetAllies.Contains((uint)groupLeave))
             {
-                curentWar.TargetAllies.Remove((uint)group);
+                curentWar.TargetAllies.Remove((uint)groupLeave);
 
                 Random rnd = new Random();
-                var selectedMessge = WarLeaveMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
+                selectedMessge = WarLeaveMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
                 ColorReplacer((ColorsEnum)curentWar.AgreesorColor, (ColorsEnum)curentWar.TargetColor, ref selectedMessge);
 
                 var groups = GroupList(curentWar);
 
-                selectedMessge = selectedMessge.Replace("{groupleave}", group.GetDescription());
+                selectedMessge = selectedMessge.Replace("{groupleave}", groupLeave.GetDescription());
                 selectedMessge = selectedMessge.Replace("{grouplead}", ((GroupsEnum)curentWar.Agressor).GetDescription());
                 selectedMessge = selectedMessge.Replace("{grouplist}", groups[0]);
                 selectedMessge = selectedMessge.Replace("{grouplist2}", groups[1]);
+
+                await FollowupAsync("Группировка удалена из войны", ephemeral: true);
             }
-            else if (curentWar.Agressor == ((uint)group))
+            else if (curentWar.Agressor == ((uint)groupLeave))
             {
                 Random rnd = new Random();
-                var selectedMessge = WarLeaveMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
-                ColorReplacer((ColorsEnum)curentWar.AgreesorColor, (ColorsEnum)curentWar.TargetColor, ref selectedMessge);
+                selectedMessge = WarEndMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
 
-                var groups = GroupList(curentWar);
+                selectedMessge = selectedMessge.Replace("{grouplose}", groupLeave.GetDescription());
+                selectedMessge = selectedMessge.Replace("{groupwin}", ((GroupsEnum)curentWar.Target).GetDescription());
 
-                selectedMessge = selectedMessge.Replace("{groupleave}", group.GetDescription());
-                selectedMessge = selectedMessge.Replace("{grouplead}", ((GroupsEnum)curentWar.Agressor).GetDescription());
-                selectedMessge = selectedMessge.Replace("{grouplist}", groups[0]);
-                selectedMessge = selectedMessge.Replace("{grouplist2}", groups[1]);
+                MainData.configData.Wars.Remove(curentWar);
+
+                await FollowupAsync("Война окончена", ephemeral: true);
             }
+            else if (curentWar.Target == ((uint)groupLeave))
+            {
+                Random rnd = new Random();
+                selectedMessge = WarEndMessage[rnd.Next(0, WarNewAllieMessages.Count - 1)];
+
+                selectedMessge = selectedMessge.Replace("{grouplose}", groupLeave.GetDescription());
+                selectedMessge = selectedMessge.Replace("{groupwin}", ((GroupsEnum)curentWar.Agressor).GetDescription());
+
+                MainData.configData.Wars.Remove(curentWar);
+
+                await FollowupAsync("Война окончена", ephemeral: true);
+            }
+
+            await SystemInfoWebHook.SendMessageAsync(avatarUrl: BotAvatar, username: BotName, text: selectedMessge);
         }
+
         private string[] GroupList(ConfigModel.War war)
         {
             string[] response = new string[2];
 
-            response[0] = ((GroupsEnum)war.Agressor).GetDescription();
-            response[1] = ((GroupsEnum)war.Target).GetDescription();
+            response[0] = Format.Bold(((GroupsEnum)war.Agressor).GetDescription());
+            response[1] = Format.Bold(((GroupsEnum)war.Target).GetDescription());
 
             if (war.AgressorAllies.Any())
-                foreach (var allie in war.AgressorAllies)
-                    response[0] = string.Join(", ", response[0], ((GroupsEnum)allie).GetDescription());
+            {
+                response[0] = string.Join(" ", response[0], "со своими союзниками: ");
+                var allies = string.Join(", ", war.AgressorAllies.SkipLast(1).Select(x => Format.Bold(((GroupsEnum)x).GetDescription())));
+                if (string.IsNullOrEmpty(allies))
+                    response[0] += Format.Bold(((GroupsEnum)war.AgressorAllies.Last()).GetDescription());
+                else
+                    response[0] += allies + " и " + Format.Bold(((GroupsEnum)war.AgressorAllies.Last()).GetDescription());
+            }
 
             if (war.TargetAllies.Any())
-                foreach (var allie in war.TargetAllies)
-                    response[1] = string.Join(", ", response[1], ((GroupsEnum)allie).GetDescription());
+            {
+                response[1] = string.Join(" ", response[1], "и их союзников: ");
+                var allies = string.Join(", ", war.TargetAllies.SkipLast(1).Select(x => Format.Bold(((GroupsEnum)x).GetDescription())));
+                if (string.IsNullOrEmpty(allies))
+                    response[1] += Format.Bold(((GroupsEnum)war.TargetAllies.Last()).GetDescription());
+                else
+                    response[1] += allies + " и " + Format.Bold(((GroupsEnum)war.TargetAllies.Last()).GetDescription());
+            }
 
             return response;
         }
+
         private void ColorReplacer(ColorsEnum leftColor, ColorsEnum rightColor, ref string msg)
         {
             var leftGroupColor = ColorsDeclinaton.GetColorDict(leftColor);
