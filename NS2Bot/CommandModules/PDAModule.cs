@@ -254,6 +254,23 @@ namespace NS2Bot.CommandModules
             await SystemInfoWebHook.SendMessageAsync(avatarUrl: BotAvatar, username: BotName, text: selectedMessge);
         }
 
+        [SlashCommand("инфа", "получить информацию о войнах")]
+        public async Task GetWarsInfo()
+        {
+            await DeferAsync();
+            List<string[]> sides = new List<string[]>();
+            foreach(var war in MainData.configData.Wars)
+                sides.Add(GroupList(war));
+
+            var embedWar = new EmbedBuilder()
+                .WithTitle("Текущие войны");
+
+            foreach(var side in sides)
+                embedWar.AddField("===============", side[0] + "\nПротив\n" + side[1]);
+
+            await FollowupAsync(embed: embedWar.Build());
+        }
+
         private string[] GroupList(ConfigModel.War war)
         {
             string[] response = new string[2];
