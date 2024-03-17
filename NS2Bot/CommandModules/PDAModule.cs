@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.Webhook;
 using Discord.WebSocket;
 using Newtonsoft.Json.Linq;
 using NS2Bot.Models;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -12,6 +14,9 @@ namespace NS2Bot.CommandModules
 {
     public class PDAModule : InteractionModuleBase<SocketInteractionContext>
     {
+        private const string BotUserName = "Аноним";
+        private const string BotAvatar = "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png";
+
         [SlashCommand("setpdachannel", "Установить общий-кпк канал")]
         [RequireOwner]
         public async Task SetPublicPDAChannel()
@@ -21,54 +26,37 @@ namespace NS2Bot.CommandModules
         }
 
         [SlashCommand("anonymous", "Отправить анонимное сообщение")]
-        public async Task AnonymousMessage([Summary(name: "Сообщение", description: "Текст сообщения")] string message, [Summary(name: "Изображение", description: "Прикрепить изображение")][Optional] IAttachment attachment)
-        {   
+        public async Task AnonymousMessage([Summary(name: "Сообщение", description: "Текст сообщения")] string message, [Summary(name: "Изображение", description: "Прикрепить изображение")][Optional][DefaultParameterValue(null)] IAttachment? attachment)
+        {
             HttpClient client = new HttpClient();
-            WebhookModel webhookModel = new()
-            {
-                username = "Аноним",
-                avatar_url = "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png"
-            };
+
+            DiscordWebhookClient pdaWebHook = new DiscordWebhookClient(MainData.publicPdaWebhook);
+            pdaWebHook.Log += _ => MainData.logger.LogAsync(_);
 
             await DeferAsync(ephemeral:true);
 
             message = message.Replace(@"\n", "\n");
-            webhookModel.content = message;
-
-            MultipartFormDataContent msgData = new MultipartFormDataContent
-            {
-                { new StringContent(JsonSerializer.Serialize(webhookModel)), "payload_json" }
-            };
+            Task<ulong> messageId;
 
             if (attachment != null && attachment.Width != null)
-            {
-                var fileByte = client.GetStreamAsync(new Uri(attachment.ProxyUrl)).Result;
-                MemoryStream ms = new MemoryStream();
-                fileByte.CopyTo(ms);
-                msgData.Add(new ByteArrayContent(ms.ToArray()), "Photo", attachment.Filename);
-            }
-
-            var response = await client.PostAsync(MainData.publicPdaWebhook, msgData);
+                messageId = pdaWebHook.SendFileAsync(stream: client.GetStreamAsync(new Uri(attachment.ProxyUrl)).Result, filename: attachment.Filename, text: message, username: BotUserName, avatarUrl: BotAvatar);
+            else
+                messageId = pdaWebHook.SendMessageAsync(message, username: BotUserName, avatarUrl: BotAvatar);
 
             await FollowupAsync("Отправлено", ephemeral: true);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            ulong webHookMsgId = JObject.Parse(responseContent)["id"].Value<ulong>();
-
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "Anon", Context.User.GlobalName.ToString() + ": Отправил анонимное сообщение"));
 
             var pdaEmbedLog = new EmbedBuilder()
                 .WithTitle("Анонимное сообщение в кпк")
                 .WithDescription(Format.Code(message))
                 .AddField("Автор сообщения", MentionUtils.MentionUser(Context.User.Id))
-                .AddField("Ссылка на сообщение", (Context.Guild.GetChannel(MainData.configData.PublicPDAChannelId) as SocketTextChannel).GetMessageAsync(webHookMsgId).Result.GetJumpUrl())
+                .AddField("Ссылка на сообщение", (Context.Guild.GetChannel(MainData.configData.PublicPDAChannelId) as SocketTextChannel).GetMessageAsync(messageId.Result).Result.GetJumpUrl())
                 .WithCurrentTimestamp();
 
             var logChannel = Context.Guild.GetTextChannel(MainData.configData.PDALogsChannelId);
             await logChannel.SendMessageAsync(embed: pdaEmbedLog.Build());
 
             client.Dispose();
-            msgData.Dispose();
+            pdaWebHook.Dispose();
         }
     }
 }

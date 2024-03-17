@@ -1,10 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.Webhook;
 using Discord.WebSocket;
 using Newtonsoft.Json.Linq;
 using NS2Bot.Models;
-using System.Net;
-using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -15,41 +14,25 @@ namespace NS2Bot.CommandModules
     {
         [SlashCommand("testcommand", "Тестовая команда")]
         [RequireOwner]
-        public async Task AnonymousMessage([Summary(name: "Сообщение", description: "Текст сообщения")] string message, [Summary(name: "Изображение", description: "Прикрепить изображение")][Optional] IAttachment attachment)
+        public async Task AnonymousMessage([Summary(name: "Сообщение", description: "Текст сообщения")] string message, [Summary(name: "Изображение", description: "Прикрепить изображение")][Optional][DefaultParameterValue(null)] IAttachment? attachment)
         {
-            await DeferAsync(ephemeral: true);
-
             HttpClient client = new HttpClient();
+            DiscordWebhookClient webhookClient = new DiscordWebhookClient("https://discord.com/api/webhooks/1218717671705677976/rnbokuykXm3PwNRXkSjU-ZSTbTolxKP3MkRR5s69kJCQsLyHHBYeNisDhysx5nFuR0ti");
             List<byte[]> files = new List<byte[]>();
 
-            WebhookModel webhookModel = new()
-            {
-                username = "Аноним",
-                avatar_url = "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png"
-            };
+            await DeferAsync(ephemeral: true);
 
             message = message.Replace(@"\n", "\n");
-            webhookModel.content = message;
-            string json = JsonSerializer.Serialize(webhookModel);
             List<SocketMessage> messages = new List<SocketMessage>();
-
-            MultipartFormDataContent msgData = new MultipartFormDataContent();
-            msgData.Add(new StringContent(json), "payload_json");
-            MemoryStream ms = new MemoryStream();
-            var fileByte = client.GetStreamAsync(new Uri(attachment.ProxyUrl)).Result;
-            fileByte.CopyTo(ms);
-            msgData.Add(new ByteArrayContent(ms.ToArray()), "Photo", attachment.Filename);
-
 
             //var fileByte = File.ReadAllBytes(TempImgFolder + attachment.Filename);  
             //msgData.Add(new ByteArrayContent(fileByte, 0, fileByte.Length));
 
             //var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("https://discord.com/api/webhooks/1218717671705677976/rnbokuykXm3PwNRXkSjU-ZSTbTolxKP3MkRR5s69kJCQsLyHHBYeNisDhysx5nFuR0ti", msgData);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            JObject o = JObject.Parse(responseContent);
-            ulong id = o["id"].Value<ulong>();
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "ImgTest", responseContent));
+            var asd = webhookClient.SendMessageAsync(message, username: "Аноним", avatarUrl: "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png");
+            //var asd = webhookClient.SendFileAsync(stream: client.GetStreamAsync(new Uri(attachment.ProxyUrl)).Result, filename: attachment.Filename, text: message, username: "Аноним", avatarUrl: "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png");
+            ulong id = asd.Result;
+            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "ImgTest", "123"));
             await FollowupAsync("Отправлено", ephemeral: true);
         }
     }
