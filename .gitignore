@@ -20,3 +20,7 @@ NS2Bot/token.txt
 /.vs/ProjectEvaluation/ns2bot.metadata.v7.bin
 /.vs/NS2Bot/v17/.futdcache.v2
 /.vs/NS2Bot/DesignTimeBuild/.dtbcache.v2
+/NS2Bot/bin/Debug/net6.0/config.json
+/NS2Bot/bin/Debug/net6.0
+/NS2Bot/obj/Debug/net6.0/apphost.exe
+/NS2Bot/obj/Debug/net6.0/NS2Bot.csproj.FileListAbsolute.txt
