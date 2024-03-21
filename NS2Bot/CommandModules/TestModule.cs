@@ -32,7 +32,7 @@ namespace NS2Bot.CommandModules
             var asd = webhookClient.SendMessageAsync(message, username: "Аноним", avatarUrl: "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png");
             //var asd = webhookClient.SendFileAsync(stream: client.GetStreamAsync(new Uri(attachment.ProxyUrl)).Result, filename: attachment.Filename, text: message, username: "Аноним", avatarUrl: "https://media.moddb.com/cache/images/downloads/1/221/220278/thumb_620x2000/No_data.png");
             ulong id = asd.Result;
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "ImgTest", "123"));
+            await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "ImgTest", "123"));
             await FollowupAsync("Отправлено", ephemeral: true);
         }
     }

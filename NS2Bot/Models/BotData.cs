@@ -1,31 +1,20 @@
-﻿using Newtonsoft.Json;
-
-namespace NS2Bot.Models
+﻿namespace NS2Bot.Models
 {
-    public class ConfigModel
+    public class BotData
     {
-        public Categories Category { get; set; }
-        public int HelperTicketsCount { get; set; }
-        public Dictionary<ulong,ulong> MessageChannelTickerPair { get; set; }
-        public ulong PDALogsChannelId { get; set; } 
-        public ulong PublicPDAChannelId { get;set; }
+        public Channels Channels { get; set; }
+        public Ticket Helper {  get; set; }
+        public Ticket Curator { get; set; }
         public List<Group> Groups { get; set; }
         public List<War> Wars { get; set; }
-        public bool IsRadioEnabled { get; set; }
-        public class Categories
-        {
-            public ulong NewHelperTicketsCategoryId { get; set; }
-            public ulong HelperTicketsChannelId { get; set; }
-            public ulong OldTicketsCategoryId { get; set; }
-            public ulong RadioInitChannelId { get; set; }
-            public List<ulong> ActiveRadios { get; set; }
-        }
+
         public class Group
         {
-            public uint Id {  get; set; }
+            public uint Id { get; set; }
             public ulong Leader { get; set; }
             public List<ulong> Members { get; set; }
         }
+
         public class War
         {
             public uint Agressor { get; set; }

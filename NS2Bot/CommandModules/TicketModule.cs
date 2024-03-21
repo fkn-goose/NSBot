@@ -83,7 +83,7 @@ namespace NS2Bot.CommandModules
         {
             var newMessage = (SocketMessageComponent)Context.Interaction;
             var oldMessageId = ((IComponentInteraction)Context.Interaction).Message.Id;
-            var channel = Context.Guild.GetTextChannel(MainData.configData.MessageChannelTickerPair[oldMessageId]);
+            var channel = Context.Guild.GetTextChannel(Model.Data.Helper.MessageChannelTickerPair[oldMessageId]);
 
             await channel.AddPermissionOverwriteAsync(Context.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
             await channel.SendMessageAsync($"{MentionUtils.MentionUser(Context.User.Id)} взял тикет в работу");
@@ -98,7 +98,7 @@ namespace NS2Bot.CommandModules
                 .ContinueWith(task =>
                 {
                     //Добавляю ключ сообщения "Тикет в работе" к каналу тикета 
-                    MainData.configData.MessageChannelTickerPair.Add(newMessage.Id, channel.Id);
+                    Model.Data.Helper.MessageChannelTickerPair.Add(newMessage.Id, channel.Id);
                 });
         }
 
@@ -106,7 +106,7 @@ namespace NS2Bot.CommandModules
         public async Task CloseHelperTicket()
         {
             var channel = Context.Guild.GetTextChannel(Context.Channel.Id);
-            await channel.ModifyAsync(prop => prop.CategoryId = MainData.configData.Category.OldTicketsCategoryId);
+            await channel.ModifyAsync(prop => prop.CategoryId = Model.Data.Helper.OldTicketsCategoryId);
             await channel.SyncPermissionsAsync();
 
             var origMessage = (SocketMessageComponent)Context.Interaction;
@@ -114,9 +114,9 @@ namespace NS2Bot.CommandModules
             newEmbed.Color = Color.Green;
             await origMessage.UpdateAsync(msg => { msg.Embeds = new Embed[] { newEmbed.Build() }; msg.Components = new ComponentBuilder().Build(); });
 
-            var keys = MainData.configData.MessageChannelTickerPair.Where(v => v.Value == channel.Id).Select(k => k.Key).ToList();
+            var keys = Model.Data.MessageChannelTickerPair.Where(v => v.Value == channel.Id).Select(k => k.Key).ToList();
 
-            var helperTicketChannel = Context.Guild.GetTextChannel(MainData.configData.Category.HelperTicketsChannelId);
+            var helperTicketChannel = Context.Guild.GetTextChannel(Model.Data.Category.HelperTicketsChannelId);
             List<IMessage> oldMessages = new List<IMessage>();
             foreach (var key in keys)
             {
@@ -125,7 +125,7 @@ namespace NS2Bot.CommandModules
                     oldMessages.Add(msg);
 
                 //Удаляю запись открытого тикета
-                MainData.configData.MessageChannelTickerPair.Remove(key);
+                Model.Data.Helper.MessageChannelTickerPair.Remove(key);
             }
 
             await helperTicketChannel.DeleteMessagesAsync(oldMessages);

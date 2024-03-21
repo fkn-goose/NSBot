@@ -6,7 +6,6 @@ using NS2Bot.Enums;
 using NS2Bot.Extensions;
 using NS2Bot.Models;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace NS2Bot.CommandModules
 {
@@ -19,7 +18,7 @@ namespace NS2Bot.CommandModules
         [RequireOwner]
         public async Task SetPublicPDAChannel()
         {
-            MainData.configData.PublicPDAChannelId = Context.Channel.Id;
+            Model.Data.Channels.PDA.PublicPDAChannelId = Context.Channel.Id;
             await RespondAsync("Канал установлен как \"Общий-кпк\"", ephemeral: true);
         }
 
@@ -28,8 +27,8 @@ namespace NS2Bot.CommandModules
         {
             HttpClient client = new HttpClient();
 
-            DiscordWebhookClient pdaWebHook = new DiscordWebhookClient(MainData.publicPdaWebHook);
-            pdaWebHook.Log += _ => MainData.logger.LogAsync(_);
+            DiscordWebhookClient pdaWebHook = new DiscordWebhookClient(Model.publicPdaWebHook);
+            pdaWebHook.Log += _ => Model.logger.LogAsync(_);
 
             await DeferAsync(ephemeral: true);
 
@@ -49,10 +48,10 @@ namespace NS2Bot.CommandModules
             if (attachment != null && attachment.Width != null)
                 pdaEmbedLog.WithImageUrl(attachment.ProxyUrl);
             pdaEmbedLog.AddField("Автор сообщения", MentionUtils.MentionUser(Context.User.Id))
-                       .AddField("Ссылка на сообщение", (Context.Guild.GetChannel(MainData.configData.PublicPDAChannelId) as SocketTextChannel).GetMessageAsync(messageId.Result).Result.GetJumpUrl())
+                       .AddField("Ссылка на сообщение", (Context.Guild.GetChannel(Model.Data.Channels.PDA.PublicPDAChannelId) as SocketTextChannel).GetMessageAsync(messageId.Result).Result.GetJumpUrl())
                        .WithCurrentTimestamp();
 
-            var logChannel = Context.Guild.GetTextChannel(MainData.configData.PDALogsChannelId);
+            var logChannel = Context.Guild.GetTextChannel(Model.Data.Channels.PDA.PDALogsChannelId);
             await logChannel.SendMessageAsync(embed: pdaEmbedLog.Build());
 
             client.Dispose();
@@ -78,7 +77,7 @@ namespace NS2Bot.CommandModules
 
         private List<string> WarLeaveMessage = new List<string>()
         {
-            "Вестник сталкера на связи! Наши источники сообщают, что {groupleave} выходит из войны! Условия выхода точно нам неизвестны, но думаю ребята из группировки {grouplead} остались довольны. \r\n\r\nВ войне остались {grouplist} с повязками {l1} цвета и {grouplist2} с повязками {r1} цвета. Пожелаем удачи обеим сторонам, а сталкерам посоветуем не вставать у них на дороге."
+            "Вестник сталкера на связи! Наши источники сообщают, что {groupleave} выходит из войны! Условия выхода точно нам неизвестны, но думаю ребята из группировки {grouplead} остались довольны. \r\n\r\nВ войне остались {grouplist} с повязками {l1} цвета против {grouplist2} с повязками {r1} цвета. Пожелаем удачи обеим сторонам, а сталкерам посоветуем не вставать у них на дороге."
         };
 
         private List<string> WarEndMessage = new List<string>()
@@ -92,7 +91,7 @@ namespace NS2Bot.CommandModules
                                    [Summary(name: "Повязка1", "Цвет повязки первой группировки")] ColorsEnum initGroupColor,
                                    [Summary(name: "Повязка2", "Цвет повязки второй группировки")] ColorsEnum targetGroupColor)
         {
-            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(MainData.systemInfoWebHook);
+            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(Model.systemInfoWebHook);
 
             await DeferAsync(ephemeral: true);
             Random rnd = new Random();
@@ -105,10 +104,10 @@ namespace NS2Bot.CommandModules
 
             await SystemInfoWebHook.SendMessageAsync(avatarUrl: BotAvatar, username: BotName, text: selectedMessge);
 
-            if (MainData.configData.Wars == null)
-                MainData.configData.Wars = new List<ConfigModel.War> { };
+            if (Model.Data.Wars == null)
+                Model.Data.Wars = new List<BotData.War> { };
 
-            MainData.configData.Wars.Add(new ConfigModel.War()
+            Model.Data.Wars.Add(new BotData.War()
             {
                 Agressor = (uint)initGroup,
                 Target = (uint)targetGroup,
@@ -125,7 +124,7 @@ namespace NS2Bot.CommandModules
         public async Task AddAlies([Summary(name: "Сторона", "Группировка к которой присоединяется союзник")] GroupsEnum sideGroup,
                                    [Summary(name: "Союзик", "Группировка которая присоединяется к войне")] GroupsEnum newGroup)
         {
-            if (MainData.configData.Wars == null)
+            if (Model.Data.Wars == null)
                 return;
 
             if (sideGroup == newGroup)
@@ -134,7 +133,7 @@ namespace NS2Bot.CommandModules
                 return;
             }
 
-            ConfigModel.War curentWar = MainData.configData.Wars.Where(x => x.Agressor == (uint)sideGroup || x.Target == (uint)sideGroup).FirstOrDefault();
+            BotData.War curentWar = Model.Data.Wars.Where(x => x.Agressor == (uint)sideGroup || x.Target == (uint)sideGroup).FirstOrDefault();
             if (curentWar == null)
             {
                 await RespondAsync("Группировка не учавствует ни в одной из войн", ephemeral: true);
@@ -149,7 +148,7 @@ namespace NS2Bot.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(MainData.systemInfoWebHook);
+            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(Model.systemInfoWebHook);
 
             if (curentWar.Agressor == (uint)sideGroup)
                 curentWar.AgressorAllies.Add((uint)newGroup);
@@ -167,7 +166,7 @@ namespace NS2Bot.CommandModules
 
             ColorReplacer((ColorsEnum)curentWar.AgreesorColor, (ColorsEnum)curentWar.TargetColor, ref selectedMessge);
 
-            MainData.configData.Wars.Where(x => x.Agressor == (uint)sideGroup || x.Target == (uint)sideGroup).FirstOrDefault().Update(curentWar);
+            Model.Data.Wars.Where(x => x.Agressor == (uint)sideGroup || x.Target == (uint)sideGroup).FirstOrDefault().Update(curentWar);
 
             await SystemInfoWebHook.SendMessageAsync(avatarUrl: BotAvatar, username: BotName, text: selectedMessge);
 
@@ -177,10 +176,10 @@ namespace NS2Bot.CommandModules
         [SlashCommand("убрать", "убрать группировку из войны")]
         public async Task LeaveWar([Summary(name: "Группировка", "Группировка которая выходит из войны")] GroupsEnum groupLeave)
         {
-            if (MainData.configData.Wars == null)
+            if (Model.Data.Wars == null)
                 return;
 
-            ConfigModel.War curentWar = MainData.configData.Wars.Where(x => x.Agressor == (uint)groupLeave || x.Target == (uint)groupLeave || x.AgressorAllies.Contains((uint)groupLeave) || x.TargetAllies.Contains((uint)groupLeave)).FirstOrDefault();
+            BotData.War curentWar = Model.Data.Wars.Where(x => x.Agressor == (uint)groupLeave || x.Target == (uint)groupLeave || x.AgressorAllies.Contains((uint)groupLeave) || x.TargetAllies.Contains((uint)groupLeave)).FirstOrDefault();
             if (curentWar == null)
             {
                 await RespondAsync("Группировка не учавствует ни в одной из войн", ephemeral: true);
@@ -189,7 +188,7 @@ namespace NS2Bot.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(MainData.systemInfoWebHook);
+            DiscordWebhookClient SystemInfoWebHook = new DiscordWebhookClient(Model.systemInfoWebHook);
 
             var selectedMessge = string.Empty;
             if (curentWar.AgressorAllies.Contains((uint)groupLeave))
@@ -234,7 +233,7 @@ namespace NS2Bot.CommandModules
                 selectedMessge = selectedMessge.Replace("{grouplose}", groupLeave.GetDescription());
                 selectedMessge = selectedMessge.Replace("{groupwin}", ((GroupsEnum)curentWar.Target).GetDescription());
 
-                MainData.configData.Wars.Remove(curentWar);
+                Model.Data.Wars.Remove(curentWar);
 
                 await FollowupAsync("Война окончена", ephemeral: true);
             }
@@ -246,7 +245,7 @@ namespace NS2Bot.CommandModules
                 selectedMessge = selectedMessge.Replace("{grouplose}", groupLeave.GetDescription());
                 selectedMessge = selectedMessge.Replace("{groupwin}", ((GroupsEnum)curentWar.Agressor).GetDescription());
 
-                MainData.configData.Wars.Remove(curentWar);
+                Model.Data.Wars.Remove(curentWar);
 
                 await FollowupAsync("Война окончена", ephemeral: true);
             }
@@ -259,7 +258,7 @@ namespace NS2Bot.CommandModules
         {
             await DeferAsync();
             List<string[]> sides = new List<string[]>();
-            foreach(var war in MainData.configData.Wars)
+            foreach(var war in Model.Data.Wars)
                 sides.Add(GroupList(war));
 
             var embedWar = new EmbedBuilder()
@@ -271,7 +270,7 @@ namespace NS2Bot.CommandModules
             await FollowupAsync(embed: embedWar.Build());
         }
 
-        private string[] GroupList(ConfigModel.War war)
+        private string[] GroupList(BotData.War war)
         {
             string[] response = new string[2];
 

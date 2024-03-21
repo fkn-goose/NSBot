@@ -14,8 +14,8 @@ namespace NS2Bot.CommandModules
         [RequireOwner]
         public async Task InitRadioChannel()
         {
-            MainData.configData.Category.RadioInitChannelId = Context.Channel.Id;
-            MainData.configData.IsRadioEnabled = true;
+            Model.Data.Category.RadioInitChannelId = Context.Channel.Id;
+            Model.Data.IsRadioEnabled = true;
 
             await Context.Channel.SendMessageAsync("Для создания или подключения к частоте **напишите** команду /частота");
             await RespondAsync("Канал выбран как создание частот", ephemeral: true);
@@ -25,8 +25,8 @@ namespace NS2Bot.CommandModules
         [RequireOwner]
         public async Task StopRadioChannel()
         {
-            MainData.configData.Category.RadioInitChannelId = 0;
-            MainData.configData.IsRadioEnabled = false;
+            Model.Data.Category.RadioInitChannelId = 0;
+            Model.Data.IsRadioEnabled = false;
 
             await RespondAsync("Создание частот отключено", ephemeral: true);
         }
@@ -36,7 +36,7 @@ namespace NS2Bot.CommandModules
         {
             await DeferAsync(ephemeral: true);
 
-            if (!MainData.configData.IsRadioEnabled)
+            if (!Model.Data.IsRadioEnabled)
             {
                 await FollowupAsync("Создание частот отключено");
                 return;
@@ -46,21 +46,21 @@ namespace NS2Bot.CommandModules
             if (redirectionChannel != null && !redirectionChannel.ConnectedUsers.Contains(Context.User))
             {
                 await FollowupAsync("Вы не подлючены к каналу \"Создание частоты\"", ephemeral: true);
-                await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} не подключен к войсу при создании рации"));
+                await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} не подключен к войсу при создании рации"));
                 return;
             }
 
             if (!radioname.IsMatch(freq))
             {
                 await FollowupAsync("Сообщение должно иметь вид 000.000, где вместо нулей могут быть любые цифры", ephemeral: true);
-                await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} неправильно написал частоту"));
+                await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} неправильно написал частоту"));
                 return;
             }
 
             if (string.Equals(freq, "000.000"))
             {
                 await FollowupAsync("Недопустимое значение частоты", ephemeral: true);
-                await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} ввёл 000.000"));
+                await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} ввёл 000.000"));
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace NS2Bot.CommandModules
             {
                 await ((SocketGuildUser)Context.User).ModifyAsync(x => x.ChannelId = radioExists.Id);
                 await FollowupAsync($"Вы подключены к частоте {freq}", ephemeral: true);
-                await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} подключился к существующей частоте {freq}"));
+                await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} подключился к существующей частоте {freq}"));
                 return;
             }
 
@@ -80,12 +80,12 @@ namespace NS2Bot.CommandModules
             await newVoice.SyncPermissionsAsync();
             await newVoice.AddPermissionOverwriteAsync(Context.User, new Discord.OverwritePermissions(viewChannel: Discord.PermValue.Allow, moveMembers: Discord.PermValue.Allow));
 
-            if (MainData.configData.Category.ActiveRadios == null)
-                MainData.configData.Category.ActiveRadios = new List<ulong>();
-            MainData.configData.Category.ActiveRadios.Add(newVoice.Id);
+            if (Model.Data.Category.ActiveRadios == null)
+                Model.Data.Category.ActiveRadios = new List<ulong>();
+            Model.Data.Category.ActiveRadios.Add(newVoice.Id);
 
             await ((SocketGuildUser)Context.User).ModifyAsync(x => x.ChannelId = newVoice.Id);
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} создал новую частоту {freq}"));
+            await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} создал новую частоту {freq}"));
 
             await FollowupAsync($"Вы подключены к частоте {freq}", ephemeral: true);
         }

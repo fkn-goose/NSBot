@@ -10,17 +10,15 @@ using Newtonsoft.Json;
 using NS2Bot.Handlers;
 using NS2Bot.Logging;
 using NS2Bot.Models;
-using System.Reflection;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
 namespace NS2Bot
 {
-    public static class MainData
+    public static class Model
     {
-        public static ConfigModel configData;
+        public static BotData Data;
         public static ConsoleLogger logger;
         public static string publicPdaWebHook;
         public static string systemInfoWebHook;
@@ -72,16 +70,16 @@ namespace NS2Bot
 
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
-            MainData.logger = new ConsoleLogger();
-            var configContext = File.ReadAllText("config.json");
-            MainData.configData = JsonConvert.DeserializeObject<ConfigModel>(configContext);
-            MainData.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
+            Model.logger = new ConsoleLogger();
+            var configContext = File.ReadAllText("Data.json");
+            Model.Data = JsonConvert.DeserializeObject<BotData>(configContext);
+            Model.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
 
             Timer dataTimer = new Timer(60000);
             dataTimer.Elapsed += RefreshDataEvent;
             dataTimer.AutoReset = true;
             dataTimer.Start();
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
+            await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
             _client.ModalSubmitted += ModalEventHandler;
             _client.UserVoiceStateUpdated += VoiceRemover;
@@ -98,8 +96,8 @@ namespace NS2Bot
                 //    await commands.RegisterCommandsGloballyAsync(true);
             };
 
-            MainData.publicPdaWebHook = config["webhooks:publicPDA"];
-            MainData.systemInfoWebHook = config["webhooks:systemInfo"];
+            Model.publicPdaWebHook = config["webhooks:publicPDA"];
+            Model.systemInfoWebHook = config["webhooks:systemInfo"];
 
             await _client.LoginAsync(Discord.TokenType.Bot, config["tokens:discord"]);
             await _client.StartAsync();
@@ -109,13 +107,13 @@ namespace NS2Bot
 
         private async Task RndMessagesDelete(SocketMessage message)
         {
-            if (!MainData.configData.IsRadioEnabled)
+            if (!Model.Data.Channels.Radio.IsRadioEnabled)
                 return;
 
             if (message.Author.IsBot || message.Author.IsWebhook)
                 return;
 
-            if (message.Channel.Id != MainData.configData.Category.RadioInitChannelId)
+            if (message.Channel.Id != Model.Data.Channels.Radio.RadioInitChannelId)
                 return;
 
             await message.DeleteAsync();
@@ -133,26 +131,26 @@ namespace NS2Bot
 
         private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)
         {
-            File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(MainData.configData)).Wait();
-            await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
+            File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(Model.Data)).Wait();
+            await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         }
 
         private async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after)
         {
-            if (!MainData.configData.IsRadioEnabled)
+            if (!Model.Data.Channels.Radio.IsRadioEnabled)
                 return;
 
-            if (MainData.configData.Category.ActiveRadios == null)
+            if (Model.Data.Channels.Radio.ActiveRadios == null)
                 return;
 
             if (before.VoiceChannel == null || before.VoiceChannel == after.VoiceChannel)
                 return;
 
-            if (MainData.configData.Category.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
+            if (Model.Data.Channels.Radio.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
             {
-                MainData.configData.Category.ActiveRadios.Remove(before.VoiceChannel.Id);
+                Model.Data.Channels.Radio.ActiveRadios.Remove(before.VoiceChannel.Id);
                 await before.VoiceChannel.DeleteAsync();
-                await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
+                await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
             }
         }
 
@@ -165,11 +163,11 @@ namespace NS2Bot
                     case "createHelperTicket":
                         Task.Run(async () =>
                         {
-                            var ticketCount = MainData.configData.HelperTicketsCount;
-                            MainData.configData.HelperTicketsCount++;
+                            var ticketCount = Model.Data.Helper.TicketsCount;
+                            Model.Data.Helper.TicketsCount++;
 
                             var guild = _client.GetGuild(modal.GuildId.Value);
-                            var ticketChannel = await guild.CreateTextChannelAsync($"Хелпер-тикет-{ticketCount}", prop => prop.CategoryId = MainData.configData.Category.NewHelperTicketsCategoryId);
+                            var ticketChannel = await guild.CreateTextChannelAsync($"Хелпер-тикет-{ticketCount}", prop => prop.CategoryId = Model.Data.Category.NewHelperTicketsCategoryId);
 
                             await ticketChannel.SyncPermissionsAsync();
                             await ticketChannel.AddPermissionOverwriteAsync(modal.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
@@ -190,7 +188,7 @@ namespace NS2Bot
                             component.WithButton(buttonCloseTicket);
 
                             await ticketChannel.SendMessageAsync(embed: embedChannelTicket.Build(), components: component.Build());
-                            var ticketMenu = guild.GetTextChannel(MainData.configData.Category.HelperTicketsChannelId);
+                            var ticketMenu = guild.GetTextChannel(Model.Data.Helper.TicketsChannelId);
 
                             var embedHelperTicket = new EmbedBuilder()
                                 .WithTitle($"Тикет #{ticketCount} [Открыто]")
@@ -211,11 +209,11 @@ namespace NS2Bot
                             await modal.RespondAsync($"Тикет создан, {MentionUtils.MentionChannel(ticketChannel.Id)}. Как только появится свободный хелпер, он возьмет его в работу.", ephemeral: true)
                                 .ContinueWith(task =>
                                 {
-                                    if (MainData.configData.MessageChannelTickerPair == null)
-                                        MainData.configData.MessageChannelTickerPair = new Dictionary<ulong, ulong>();
+                                    if (Model.Data.Helper.MessageChannelTickerPair == null)
+                                        Model.Data.Helper.MessageChannelTickerPair = new Dictionary<ulong, ulong>();
 
                                     //Добавляю ключ "Открытый тикет" к каналу тикета
-                                    MainData.configData.MessageChannelTickerPair.Add(helperButton.Id, ticketChannel.Id);
+                                    Model.Data.Helper.MessageChannelTickerPair.Add(helperButton.Id, ticketChannel.Id);
                                 });
                         });
                         return Task.CompletedTask;
