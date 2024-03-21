@@ -20,7 +20,6 @@ namespace NS2Bot.Handlers
 
         public async Task InitializeAsync()
         {
-            await _interactionService.AddModulesAsync(Assembly.GetAssembly(typeof(ModalComponent)), _serviceProvider);
             await _interactionService.AddModulesAsync(Assembly.GetEntryAssembly(), _serviceProvider);
 
             _client.InteractionCreated += HandleIntercation;

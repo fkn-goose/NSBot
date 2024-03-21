@@ -14,8 +14,8 @@ namespace NS2Bot.CommandModules
         [RequireOwner]
         public async Task InitRadioChannel()
         {
-            Model.Data.Category.RadioInitChannelId = Context.Channel.Id;
-            Model.Data.IsRadioEnabled = true;
+            Model.Data.Channels.Radio.RadioInitChannelId = Context.Channel.Id;
+            Model.Data.Channels.Radio.IsRadioEnabled = true;
 
             await Context.Channel.SendMessageAsync("Для создания или подключения к частоте **напишите** команду /частота");
             await RespondAsync("Канал выбран как создание частот", ephemeral: true);
@@ -25,8 +25,8 @@ namespace NS2Bot.CommandModules
         [RequireOwner]
         public async Task StopRadioChannel()
         {
-            Model.Data.Category.RadioInitChannelId = 0;
-            Model.Data.IsRadioEnabled = false;
+            Model.Data.Channels.Radio.RadioInitChannelId = 0;
+            Model.Data.Channels.Radio.IsRadioEnabled = false;
 
             await RespondAsync("Создание частот отключено", ephemeral: true);
         }
@@ -36,7 +36,7 @@ namespace NS2Bot.CommandModules
         {
             await DeferAsync(ephemeral: true);
 
-            if (!Model.Data.IsRadioEnabled)
+            if (!Model.Data.Channels.Radio.IsRadioEnabled)
             {
                 await FollowupAsync("Создание частот отключено");
                 return;
@@ -80,9 +80,9 @@ namespace NS2Bot.CommandModules
             await newVoice.SyncPermissionsAsync();
             await newVoice.AddPermissionOverwriteAsync(Context.User, new Discord.OverwritePermissions(viewChannel: Discord.PermValue.Allow, moveMembers: Discord.PermValue.Allow));
 
-            if (Model.Data.Category.ActiveRadios == null)
-                Model.Data.Category.ActiveRadios = new List<ulong>();
-            Model.Data.Category.ActiveRadios.Add(newVoice.Id);
+            if (Model.Data.Channels.Radio.ActiveRadios == null)
+                Model.Data.Channels.Radio.ActiveRadios = new List<ulong>();
+            Model.Data.Channels.Radio.ActiveRadios.Add(newVoice.Id);
 
             await ((SocketGuildUser)Context.User).ModifyAsync(x => x.ChannelId = newVoice.Id);
             await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} создал новую частоту {freq}"));

@@ -73,15 +73,42 @@ namespace NS2Bot
             Model.logger = new ConsoleLogger();
             var configContext = File.ReadAllText("Data.json");
             Model.Data = JsonConvert.DeserializeObject<BotData>(configContext);
+
+            #region DataInit
+
+            if (Model.Data.Channels == null)
+                Model.Data.Channels = new Channels() 
+                {
+                    PDA = new PDA(),
+                    Radio =  new Radio() { ActiveRadios = new List<ulong>() }
+                };
+
+            if (Model.Data.Helper == null)
+                Model.Data.Helper = new Ticket()
+                {
+                    OldTickets = new Dictionary<DateTime, ulong>(),
+                    MessageTitcketPair = new Dictionary<ulong, ulong>()
+                };
+
+            if(Model.Data.Groups == null)
+                Model.Data.Groups = new List<BotData.Group> 
+                { 
+                    new BotData.Group() 
+                    { 
+                        Members = new List<ulong>() 
+                    } 
+                };
+
+            #endregion
+
             Model.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
 
             Timer dataTimer = new Timer(60000);
-            dataTimer.Elapsed += RefreshDataEvent;
+            dataTimer.Elapsed += TimerEvent;
             dataTimer.AutoReset = true;
             dataTimer.Start();
             await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
-            _client.ModalSubmitted += ModalEventHandler;
             _client.UserVoiceStateUpdated += VoiceRemover;
             _client.MessageReceived += RndMessagesDelete;
 
@@ -91,7 +118,8 @@ namespace NS2Bot
             _client.Ready += async () =>
             {
                 //if (IsDebug())
-                await commands.RegisterCommandsToGuildAsync(UInt64.Parse(config["testGuild"]), true);
+                Model.Data.CurrentGuildId = ulong.Parse(config["testGuild"]);
+                await commands.RegisterCommandsToGuildAsync(Model.Data.CurrentGuildId, true);
                 //else
                 //    await commands.RegisterCommandsGloballyAsync(true);
             };
@@ -129,9 +157,16 @@ namespace NS2Bot
             msg.DeleteAsync().Wait();
         }
 
-        private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)
+        private async void TimerEvent(object? sender, ElapsedEventArgs e)
         {
-            File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(Model.Data)).Wait();
+            if (Model.Data.Helper.OldTickets.Where(x => DateTime.Now >= x.Key).Any())
+                foreach (var id in Model.Data.Helper.OldTickets.Where(x => DateTime.Now >= x.Key))
+                {
+                    _client.GetGuild(Model.Data.CurrentGuildId).GetTextChannel(id.Value).DeleteAsync();
+                    Model.Data.Helper.OldTickets.Remove(id.Key);
+                }
+
+            File.WriteAllTextAsync("Data.json", JsonConvert.SerializeObject(Model.Data)).Wait();
             await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         }
 
@@ -152,77 +187,6 @@ namespace NS2Bot
                 await before.VoiceChannel.DeleteAsync();
                 await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
             }
-        }
-
-        public Task ModalEventHandler(SocketModal modal)
-        {
-            if (modal.Type == InteractionType.ModalSubmit)
-            {
-                switch (modal.Data.CustomId)
-                {
-                    case "createHelperTicket":
-                        Task.Run(async () =>
-                        {
-                            var ticketCount = Model.Data.Helper.TicketsCount;
-                            Model.Data.Helper.TicketsCount++;
-
-                            var guild = _client.GetGuild(modal.GuildId.Value);
-                            var ticketChannel = await guild.CreateTextChannelAsync($"Хелпер-тикет-{ticketCount}", prop => prop.CategoryId = Model.Data.Category.NewHelperTicketsCategoryId);
-
-                            await ticketChannel.SyncPermissionsAsync();
-                            await ticketChannel.AddPermissionOverwriteAsync(modal.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
-
-                            var embedChannelTicket = new EmbedBuilder()
-                               .WithTitle($"Тикет #{ticketCount}")
-                               .WithDescription(modal.Data.Components.First(x => x.CustomId == "reason").Value)
-                               .WithColor(Color.Blue);
-
-                            var buttonCloseTicket = new ButtonBuilder()
-                            {
-                                CustomId = "closeHelperTicket",
-                                Label = "Закрыть обращение",
-                                Style = ButtonStyle.Primary
-                            };
-
-                            var component = new ComponentBuilder();
-                            component.WithButton(buttonCloseTicket);
-
-                            await ticketChannel.SendMessageAsync(embed: embedChannelTicket.Build(), components: component.Build());
-                            var ticketMenu = guild.GetTextChannel(Model.Data.Helper.TicketsChannelId);
-
-                            var embedHelperTicket = new EmbedBuilder()
-                                .WithTitle($"Тикет #{ticketCount} [Открыто]")
-                                .WithDescription($"Обращение создал - {MentionUtils.MentionUser(modal.User.Id)}")
-                                .WithCurrentTimestamp()
-                                .WithColor(Color.LightGrey);
-
-                            var buttonTakeTicket = new ButtonBuilder()
-                            {
-                                CustomId = "takeTicket",
-                                Label = "Взять тикет в работу",
-                                Style = ButtonStyle.Primary
-                            };
-
-                            component = new ComponentBuilder();
-                            component.WithButton(buttonTakeTicket);
-                            var helperButton = await ticketMenu.SendMessageAsync(embed: embedHelperTicket.Build(), components: component.Build());
-                            await modal.RespondAsync($"Тикет создан, {MentionUtils.MentionChannel(ticketChannel.Id)}. Как только появится свободный хелпер, он возьмет его в работу.", ephemeral: true)
-                                .ContinueWith(task =>
-                                {
-                                    if (Model.Data.Helper.MessageChannelTickerPair == null)
-                                        Model.Data.Helper.MessageChannelTickerPair = new Dictionary<ulong, ulong>();
-
-                                    //Добавляю ключ "Открытый тикет" к каналу тикета
-                                    Model.Data.Helper.MessageChannelTickerPair.Add(helperButton.Id, ticketChannel.Id);
-                                });
-                        });
-                        return Task.CompletedTask;
-
-                    default:
-                        return Task.CompletedTask;
-                }
-            }
-            return Task.CompletedTask;
         }
 
         private static bool IsDebug()
