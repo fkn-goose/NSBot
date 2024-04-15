@@ -14,3 +14,12 @@ NS2Bot/token.txt
 /NS2Bot/obj/Debug/net6.0/NS2Bot.AssemblyInfo.cs
 /.gitignore
 /NS2Bot/obj/Debug/net6.0/NS2Bot.AssemblyInfoInputs.cache
+/NS2Bot/bin/Debug/net6.0
+/.vs/NS2Bot/v17/.suo
+/.vs/ProjectEvaluation/ns2bot.projects.v7.bin
+/.vs/ProjectEvaluation/ns2bot.metadata.v7.bin
+/.vs/NS2Bot/v17/DocumentLayout.json
+/.vs/NS2Bot/v17/.futdcache.v2
+/.vs/NS2Bot/DesignTimeBuild/.dtbcache.v2
+/.gitignore
+/NS2Bot/bin/Debug/net6.0/config.json

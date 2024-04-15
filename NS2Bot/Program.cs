@@ -69,7 +69,7 @@ namespace NS2Bot
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
             MainData.logger = new ConsoleLogger();
-            var configContext = File.ReadAllText("config.json");
+            var configContext = File.ReadAllText("Data.json");
             MainData.configData = JsonConvert.DeserializeObject<ConfigModel>(configContext);
 
             Timer dataTimer = new Timer(60000);
@@ -101,7 +101,7 @@ namespace NS2Bot
 
         private async void RefreshDataEvent(object? sender, ElapsedEventArgs e)
         {
-            File.WriteAllTextAsync("config.json", JsonConvert.SerializeObject(MainData.configData)).Wait();
+            File.WriteAllTextAsync("Data.json", JsonConvert.SerializeObject(MainData.configData)).Wait();
             await MainData.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         }
 
