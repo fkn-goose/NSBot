@@ -77,26 +77,26 @@ namespace NS2Bot
             #region DataInit
 
             if (Model.Data.Channels == null)
-                Model.Data.Channels = new Channels() 
+                Model.Data.Channels = new Channels()
                 {
                     PDA = new PDA(),
-                    Radio =  new Radio() { ActiveRadios = new List<ulong>() }
+                    Radio = new Radio() { ActiveRadios = new List<ulong>() }
                 };
 
-            if (Model.Data.Helper == null)
-                Model.Data.Helper = new Ticket()
+            if (Model.Data.Tickets == null)
+                Model.Data.Tickets = new Ticket()
                 {
-                    OldTickets = new Dictionary<DateTime, ulong>(),
-                    MessageTitcketPair = new Dictionary<ulong, ulong>()
+                    TicketSettings = new TicketSettings(),
+                    TicketsData = new List<TicketData>()
                 };
 
-            if(Model.Data.Groups == null)
-                Model.Data.Groups = new List<BotData.Group> 
-                { 
-                    new BotData.Group() 
-                    { 
-                        Members = new List<ulong>() 
-                    } 
+            if (Model.Data.Groups == null)
+                Model.Data.Groups = new List<BotData.Group>
+                {
+                    new BotData.Group()
+                    {
+                        Members = new List<ulong>()
+                    }
                 };
 
             #endregion
@@ -148,7 +148,7 @@ namespace NS2Bot
             var msg = await message.Channel.SendMessageAsync("Для создания рации **напишите** комманду\n/частота");
             Timer dataTimer = new Timer(5000);
             dataTimer.AutoReset = false;
-            dataTimer.Elapsed +=(sender, e) => { DeleteRndMessage(sender, e, msg); };
+            dataTimer.Elapsed += (sender, e) => { DeleteRndMessage(sender, e, msg); };
             dataTimer.Start();
         }
 
@@ -159,11 +159,15 @@ namespace NS2Bot
 
         private async void TimerEvent(object? sender, ElapsedEventArgs e)
         {
-            if (Model.Data.Helper.OldTickets.Where(x => DateTime.Now >= x.Key).Any())
-                foreach (var id in Model.Data.Helper.OldTickets.Where(x => DateTime.Now >= x.Key))
+            if (Model.Data.Tickets.TicketsData.Where(x => x.IsFinished)
+                                              .Where(x => DateTime.Now > x.DeleteTime)
+                                              .Any())
+
+                foreach (var ticket in Model.Data.Tickets.TicketsData.Where(x => x.IsFinished)
+                                                                 .Where(x => DateTime.Now > x.DeleteTime))
                 {
-                    _client.GetGuild(Model.Data.CurrentGuildId).GetTextChannel(id.Value).DeleteAsync();
-                    Model.Data.Helper.OldTickets.Remove(id.Key);
+                    _client.GetGuild(Model.Data.CurrentGuildId).GetTextChannel(ticket.ChannelId).DeleteAsync();
+                    Model.Data.Tickets.TicketsData.Remove(ticket);
                 }
 
             File.WriteAllTextAsync("Data.json", JsonConvert.SerializeObject(Model.Data)).Wait();

@@ -1,21 +1,59 @@
-﻿namespace NS2Bot.Models
+﻿using NS2Bot.Enums;
+
+namespace NS2Bot.Models
 {
     public class Ticket
     {
-        public ulong NewTicketsCategoryId { get; set; }
-        public ulong OldTicketsCategory { get; set; }
-        public ulong NewTicketsChannelId { get; set; }
-        public ulong OldTicketsChannelId { get; set; }
-        public uint TicketsCount { get; set; }
+        public TicketSettings TicketSettings { get; set; }
+        public List<TicketData> TicketsData { get; set; }
+        public uint HelperTicketsCount { get; set; }
+        public uint CuratorTicketsCount { get; set; }
+        public uint AdminTicketsCount { get; set; }
+    }
+
+    /// <summary>
+    /// Настройки каналов для тикетов
+    /// </summary>
+    public class TicketSettings
+    {
+        //Категория для новых каналов с тикетами, канал для сообщений о появлении нового тикета
+        public ulong NewHelperTicketsCategoryId { get; set; }
+        public ulong NewHelperTicketsChannelId { get; set; }
+        public ulong OldHelperTicketsCategory { get; set; }
+        public ulong NewCuratorTicketsCategoryId { get; set; }
+        public ulong NewCuratorTicketsChannelId { get; set; }
+        public ulong OldCuratorTicketsCategory { get; set; }
+        public ulong NewAdminTicketsCategoryId { get; set; }
+        public ulong NewAdminTicketsChannelId { get; set; }
+        public ulong OldAdminTicketsCategory { get; set; }
+        public ulong TicketLogs {  get; set; }
+    }
+
+    public class TicketData
+    {
+        /// <summary>
+        /// Айди канала тикета
+        /// </summary>
+        public ulong ChannelId { get; set; }
 
         /// <summary>
-        /// Ключ - сообщение по которому даётся доступ к каналу из значения
+        /// Айди сообщения по которому с кнопкой "Взять тикет в работу"
         /// </summary>
-        public Dictionary<ulong, ulong> MessageTitcketPair { get; set; }
+        public ulong MessageId { get; set; }
 
         /// <summary>
-        /// Ключ - время удаление канала, значение - канал для удаления
+        /// Тип тикета
         /// </summary>
-        public Dictionary<DateTime, ulong> OldTickets { get; set; }
+        public TicketTypeEnum Type { get; set; }
+
+        /// <summary>
+        /// Время после которого тикет можно удалять
+        /// </summary>
+        public DateTime? DeleteTime { get; set; }
+
+        /// <summary>
+        /// Закрыт ли тикет
+        /// </summary>
+        public bool IsFinished { get; set; } = false;
     }
 }

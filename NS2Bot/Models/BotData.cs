@@ -4,9 +4,7 @@
     {
         public ulong CurrentGuildId { get; set; }
         public Channels Channels { get; set; }
-        public Ticket Helper {  get; set; }
-        public Ticket Curator { get; set; }
-        public Ticket Admin { get; set; }
+        public Ticket Tickets { get; set; }
         public List<Group> Groups { get; set; }
         public List<War> Wars { get; set; }
 

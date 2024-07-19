@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using NS2Bot.Extensions;
 using System.Reflection;
+using static NS2Bot.Extensions.ModalExtensions;
 
 namespace NS2Bot.Handlers
 {
@@ -23,7 +25,6 @@ namespace NS2Bot.Handlers
             await _interactionService.AddModulesAsync(Assembly.GetEntryAssembly(), _serviceProvider);
 
             _client.InteractionCreated += HandleIntercation;
-
             _interactionService.SlashCommandExecuted += SlashCommandExecuted;
             _interactionService.ContextCommandExecuted += ContextCommandExecuted;
             _interactionService.ComponentCommandExecuted += ComponentCommandExecuted;

@@ -1,12 +1,14 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using NS2Bot.Enums;
+using NS2Bot.Extensions;
+using static NS2Bot.Extensions.ModalExtensions;
 
 namespace NS2Bot.CommandModules
 {
     public class TicketModule : InteractionModuleBase<SocketInteractionContext>
     {
-
         [SlashCommand("createticketmenu", "Создает меню тикетов в данном канале")]
         [RequireOwner]
         public async Task CreateTicketMenu()
@@ -45,6 +47,34 @@ namespace NS2Bot.CommandModules
             await RespondAsync("Меню успешно создано", ephemeral: true);
         }
 
+        #region Settings commands
+
+        [SlashCommand("setsettings", "Задать настройки тикетов")]
+        [RequireOwner]
+        public async Task SetTicketLogChannel([Summary(name: "Категория_хелперов", description: "Категория хелперов")] ICategoryChannel? newHelperCategory, [Summary(name: "Канал_тикетов_хелперов", description: "Канал тикетов хелперов")] ITextChannel? newHelperChannel,
+                                              [Summary(name: "Старая_категория_хелперов", description: "Старая категория хелперов")] ICategoryChannel? oldHelperCategory,
+                                              [Summary(name: "Категория_тикетов_кураторов", description: "Категория тикетов кураторов")] ICategoryChannel? newCuratorCategory, [Summary(name: "Канал_тикетов_кураторов", description: "Канал тикетов кураторов")] ITextChannel? newCuraturChannel,
+                                              [Summary(name: "Старая_категория_кураторов", description: "Старая категория кураторов")] ICategoryChannel? oldCuratorCategory,
+                                              [Summary(name: "Категория_тикетов_админов", description: "Категория тикетов админов")] ICategoryChannel? newAdminCategory, [Summary(name: "Канал_тикетов_админов", description: "Канал тикетов админов")] ITextChannel? newAdminChannel,
+                                              [Summary(name: "Старая_категория_админов", description: "Старая категория админов")] ICategoryChannel? oldAdminCategory,
+                                              [Summary(name: "Канал_для_логов_тикетов", description: "Канал для логов тикетов")] ITextChannel? logChannel)
+        {
+            Model.Data.Tickets.TicketSettings.NewHelperTicketsCategoryId = newHelperCategory != null ? newHelperCategory.Id : Model.Data.Tickets.TicketSettings.NewHelperTicketsCategoryId;
+            Model.Data.Tickets.TicketSettings.NewHelperTicketsChannelId = newHelperChannel != null ? newHelperChannel.Id : Model.Data.Tickets.TicketSettings.NewHelperTicketsChannelId;
+            Model.Data.Tickets.TicketSettings.OldHelperTicketsCategory = oldHelperCategory != null ? oldHelperCategory.Id : Model.Data.Tickets.TicketSettings.OldHelperTicketsCategory;
+            Model.Data.Tickets.TicketSettings.NewCuratorTicketsCategoryId = newCuratorCategory != null ? newCuratorCategory.Id : Model.Data.Tickets.TicketSettings.NewCuratorTicketsCategoryId;
+            Model.Data.Tickets.TicketSettings.NewCuratorTicketsChannelId = newCuraturChannel != null ? newCuraturChannel.Id : Model.Data.Tickets.TicketSettings.NewCuratorTicketsChannelId;
+            Model.Data.Tickets.TicketSettings.OldCuratorTicketsCategory = oldCuratorCategory != null ? oldCuratorCategory.Id : Model.Data.Tickets.TicketSettings.OldCuratorTicketsCategory;
+            Model.Data.Tickets.TicketSettings.NewAdminTicketsCategoryId = newAdminCategory != null ? newAdminCategory.Id : Model.Data.Tickets.TicketSettings.NewAdminTicketsCategoryId;
+            Model.Data.Tickets.TicketSettings.NewAdminTicketsChannelId = newAdminChannel != null ? newAdminChannel.Id : Model.Data.Tickets.TicketSettings.NewAdminTicketsChannelId;
+            Model.Data.Tickets.TicketSettings.OldAdminTicketsCategory = oldAdminCategory != null ? oldAdminCategory.Id : Model.Data.Tickets.TicketSettings.OldAdminTicketsCategory;
+            Model.Data.Tickets.TicketSettings.TicketLogs = logChannel != null ? logChannel.Id : Model.Data.Tickets.TicketSettings.TicketLogs;
+
+            await RespondAsync("Настройки успешно сохранены", ephemeral: true);
+        }
+
+        #endregion
+
         [ComponentInteraction("createHelperModal")]
         public async Task HelperModal()
         {
@@ -63,147 +93,196 @@ namespace NS2Bot.CommandModules
             await RespondWithModalAsync<AdminTicketModal>("createAdminTicket");
         }
 
-        #region HelperMethods
+        #region ModalMethods
+        //ЕБУЧЕЕ МОДАЛЬНОЕ ОКНО НЕ УМЕЕТ ДАУНКАСТИТЬ КЛАССЫ, ПОЭТОМУ КОСТЫЛИМ
 
         [ModalInteraction("createHelperTicket")]
-        public async Task CreateHelperTicketModal(HelperTicketModal modal)
+        public async Task CreateHelperTicket(HelperTicketModal modal)
         {
             await DeferAsync(ephemeral: true);
+            await CreateTicket(new BaseTicket(modal));
+        }
 
-            var ticketChannel = await Context.Guild.CreateTextChannelAsync($"Хелпер-тикет-{Model.Data.Helper.TicketsCount}", prop => prop.CategoryId = Model.Data.Helper.NewTicketsCategoryId);
+        [ModalInteraction("createCuratorTicket")]
+        public async Task CreateCuratorTicket(CuratorTicketModal modal)
+        {
+            await DeferAsync(ephemeral: true);
+            await CreateTicket(new BaseTicket(modal));
+        }
 
+        [ModalInteraction("createAdminTicket")]
+        public async Task CreateAdminTicket(AdminTicketModal modal)
+        {
+            await DeferAsync(ephemeral: true);
+            await CreateTicket(new BaseTicket(modal));
+        }
+
+        private async Task CreateTicket(BaseTicket modal)
+        {
+            //Создаем пустые переменные для заполнения в зависимости от типа тикета
+            uint ticketCount = 0;
+            ulong ticketCategoryId = 0;
+            ulong ticketChannelId = 0;
+            string ticketType = modal.TicketType.GetDescription();
+
+            switch (modal.TicketType)
+            {
+                case TicketTypeEnum.Helper:
+                    ticketCount = Model.Data.Tickets.HelperTicketsCount;
+                    ticketCategoryId = Model.Data.Tickets.TicketSettings.NewHelperTicketsCategoryId;
+                    ticketChannelId = Model.Data.Tickets.TicketSettings.NewHelperTicketsChannelId;
+                    Model.Data.Tickets.HelperTicketsCount++;
+                    break;
+
+                case TicketTypeEnum.Curator:
+                    ticketCount = Model.Data.Tickets.CuratorTicketsCount;
+                    ticketCategoryId = Model.Data.Tickets.TicketSettings.NewCuratorTicketsCategoryId;
+                    ticketChannelId = Model.Data.Tickets.TicketSettings.NewCuratorTicketsChannelId;
+                    Model.Data.Tickets.CuratorTicketsCount++;
+                    break;
+
+                case TicketTypeEnum.Admin:
+                    ticketCount = Model.Data.Tickets.AdminTicketsCount;
+                    ticketCategoryId = Model.Data.Tickets.TicketSettings.NewAdminTicketsCategoryId;
+                    ticketChannelId = Model.Data.Tickets.TicketSettings.NewAdminTicketsChannelId;
+                    Model.Data.Tickets.AdminTicketsCount++;
+                    break;
+            }
+
+            Models.TicketData ticketData = new Models.TicketData()
+            {
+                ChannelId = ticketChannelId,
+                DeleteTime = null,
+                Type = modal.TicketType
+            };
+
+            //Создаем канал-тикет
+            var ticketChannel = await Context.Guild.CreateTextChannelAsync($"{ticketType}-тикет-{ticketCount}", prop => prop.CategoryId = ticketCategoryId);
             await ticketChannel.SyncPermissionsAsync();
             await ticketChannel.AddPermissionOverwriteAsync(Context.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
 
-            var embedChannelTicket = new EmbedBuilder()
-               .WithTitle($"Тикет #{Model.Data.Helper.TicketsCount}")
-               .WithDescription(modal.Reason)
-               .WithColor(Color.Blue);
-
-            var closeTicketButton = new ComponentBuilder();
-            closeTicketButton.WithButton(new ButtonBuilder()
+            //Создаем кнопку по которой пользователь может закрыть тикет
+            var embedChannelTicket = new EmbedBuilder().WithTitle($"Тикет #{ticketCount}")
+                                                       .WithDescription(modal.Reason)
+                                                       .WithColor(Color.Blue);
+            var closeTicketComponent = new ComponentBuilder().WithButton(new ButtonBuilder()
             {
-                CustomId = "closeHelperTicket",
+                CustomId = "closeTicket",
                 Label = "Закрыть обращение",
                 Style = ButtonStyle.Primary
             });
-            await ticketChannel.SendMessageAsync(embed: embedChannelTicket.Build(), components: closeTicketButton.Build());
+            await ticketChannel.SendMessageAsync(embed: embedChannelTicket.Build(), components: closeTicketComponent.Build());
 
+            //Создаем кнопку по которой администратор может взять тикет в работу
             var newTicketEmbed = new EmbedBuilder()
-                .WithTitle($"Тикет #{Model.Data.Helper.TicketsCount} [Открыто]")
-                .WithDescription($"Обращение создал - {MentionUtils.MentionUser(Context.User.Id)}")
+                .WithTitle($"Тикет #{ticketCount} [Открыто]")
+                .WithDescription($"Обращение создал - {MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username})")
                 .WithCurrentTimestamp()
                 .WithColor(Color.LightGrey);
-
-            var takeTicketButton = new ButtonBuilder()
+            var takeTicketComponent = new ComponentBuilder().WithButton(new ButtonBuilder()
             {
-                CustomId = "takeHelperTicket",
+                CustomId = "takeTicket",
                 Label = "Взять тикет в работу",
                 Style = ButtonStyle.Primary
-            };
+            });
+            var ticketMenu = Context.Guild.GetTextChannel(ticketChannelId);
+            var takeTicketButtonMessage = await ticketMenu.SendMessageAsync(embed: newTicketEmbed.Build(), components: takeTicketComponent.Build());
+            if (Model.Data.Tickets.TicketsData == null)
+                Model.Data.Tickets.TicketsData = new List<Models.TicketData>();
+            ticketData.MessageId = takeTicketButtonMessage.Id;
+            Model.Data.Tickets.TicketsData.Add(ticketData);
+            Context.Guild.GetTextChannel(Model.Data.Tickets.TicketSettings.TicketLogs).SendMessageAsync($"{MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username}) создал тикет {MentionUtils.MentionChannel(ticketChannel.Id)} ({Context.Guild.GetChannel(ticketChannel.Id).Name})");
 
-            closeTicketButton = new ComponentBuilder();
-            closeTicketButton.WithButton(takeTicketButton);
-
-            var ticketMenu = Context.Guild.GetTextChannel(Model.Data.Helper.NewTicketsChannelId);
-            var helperButton = await ticketMenu.SendMessageAsync(embed: newTicketEmbed.Build(), components: closeTicketButton.Build());
-
-            await FollowupAsync($"Создан тикет - {MentionUtils.MentionChannel(ticketChannel.Id)}. Как только появится свободный хелпер, он возьмет его в работу.", ephemeral: true)
-                .ContinueWith(task =>
-                {
-                    if (Model.Data.Helper.MessageTitcketPair == null)
-                        Model.Data.Helper.MessageTitcketPair = new Dictionary<ulong, ulong>();
-
-                    //Добавляю ключ "Открытый тикет" к каналу тикета
-                    Model.Data.Helper.MessageTitcketPair.Add(helperButton.Id, ticketChannel.Id);
-                });
-
-            Model.Data.Helper.TicketsCount++;
+            //Оповещаем пользователя о создании тикета и заполняем остальные данные
+            await FollowupAsync($"Создан тикет - {MentionUtils.MentionChannel(ticketChannel.Id)}. Как только появится свободный {ticketType}, он возьмет его в работу.", ephemeral: true);
         }
 
-        [ComponentInteraction("takeHelperTicket")]
-        public async Task HelperTakeTicket()
+        [ComponentInteraction("takeTicket")]
+        public async Task TakeTicket()
         {
-            var newMessage = (SocketMessageComponent)Context.Interaction;
-            var messageOldId = newMessage.Message.Id;
-            var ticketChannel = Context.Guild.GetTextChannel(Model.Data.Helper.MessageTitcketPair[messageOldId]);
+            await DeferAsync(ephemeral: true);
+
+            var ticket = Model.Data.Tickets.TicketsData.FirstOrDefault(x => x.MessageId == ((SocketMessageComponent)Context.Interaction).Message.Id);
+            if (ticket == null)
+            {
+                await FollowupAsync("Ошибка, тикет не существует", ephemeral: true);
+                return;
+            }
+
+            var ticketChannel = Context.Guild.GetTextChannel(ticket.ChannelId);
+            var ticketMessage = ticketChannel.GetMessageAsync(ticket.MessageId).Result as SocketMessageComponent;
 
             await ticketChannel.AddPermissionOverwriteAsync(Context.User, new OverwritePermissions(sendMessages: PermValue.Allow, viewChannel: PermValue.Allow));
             await ticketChannel.SendMessageAsync($"{MentionUtils.MentionUser(Context.User.Id)} взял тикет в работу");
 
-            var embed = newMessage.Message.Embeds.First();
-            var newEmbed = embed.ToEmbedBuilder();
-            newEmbed.Title = embed.Title.Replace("[Открыто]", "[В работе]");
-            newEmbed.AddField("Взял в работу", $"{MentionUtils.MentionUser(Context.User.Id)}");
-            newEmbed.Color = Color.Orange;
+            var ticketEmbed = ticketMessage.Message.Embeds.First();
+            var ticketEmbedUpdated = ticketEmbed.ToEmbedBuilder();
+            ticketEmbedUpdated.Title = ticketEmbed.Title.Replace("[Открыто]", "[В работе]");
+            ticketEmbedUpdated.AddField("Взял в работу", $"{MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username})");
+            ticketEmbedUpdated.Color = Color.Orange;
 
-            await newMessage.UpdateAsync(msg => { msg.Embeds = new Embed[] { newEmbed.Build() }; msg.Components = new ComponentBuilder().Build(); });
+            await ticketMessage.UpdateAsync(msg => { msg.Embeds = new Embed[] { ticketEmbedUpdated.Build() }; msg.Components = new ComponentBuilder().Build(); });
+            Model.Data.Tickets.TicketsData.FirstOrDefault(x => x.MessageId == ((SocketMessageComponent)Context.Interaction).Message.Id).MessageId = ticketMessage.Id;
+
+            await Context.Guild.GetTextChannel(Model.Data.Tickets.TicketSettings.TicketLogs).SendMessageAsync($"{MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username}) взял в работу тикет {MentionUtils.MentionChannel(ticketChannel.Id)} ({Context.Guild.GetChannel(ticketChannel.Id).Name})");
+
+            await FollowupAsync($"Тикет {MentionUtils.MentionChannel(ticketChannel.Id)} взят в работу.", ephemeral: true);
         }
 
-        [ComponentInteraction("closeHelperTicket")]
-        public async Task CloseHelperTicket()
+        [ComponentInteraction("closeTicket")]
+        public async Task CloseTicket()
         {
-            var currentTicketChannel = Context.Guild.GetTextChannel(Context.Channel.Id);
-            await currentTicketChannel.ModifyAsync(prop => prop.CategoryId = Model.Data.Helper.OldTicketsCategory);
-            await currentTicketChannel.SyncPermissionsAsync();
-            Model.Data.Helper.OldTickets.Add(DateTime.Now.AddMinutes(2), currentTicketChannel.Id);
+            await DeferAsync(ephemeral: true);
+
+
+            var ticket = Model.Data.Tickets.TicketsData.FirstOrDefault(x => x.ChannelId == Context.Channel.Id);
+            if (ticket == null)
+            {
+                await FollowupAsync("Ошибка, тикет не существует", ephemeral: true);
+                return;
+            }
+
+            var ticketChannel = Context.Guild.GetTextChannel(Context.Channel.Id);
+
+            switch (ticket.Type)
+            {
+                case TicketTypeEnum.Helper:
+                    await ticketChannel.ModifyAsync(prop => prop.CategoryId = Model.Data.Tickets.TicketSettings.OldHelperTicketsCategory);
+                    break;
+
+                case TicketTypeEnum.Curator:
+                    await ticketChannel.ModifyAsync(prop => prop.CategoryId = Model.Data.Tickets.TicketSettings.OldCuratorTicketsCategory);
+                    break;
+
+                case TicketTypeEnum.Admin:
+                    await ticketChannel.ModifyAsync(prop => prop.CategoryId = Model.Data.Tickets.TicketSettings.OldAdminTicketsCategory);
+                    break;
+
+                default:
+                    await FollowupAsync("Ошибка, тип тикета не найден");
+                    return;
+            }
+
+            await ticketChannel.SyncPermissionsAsync();
+            Model.Data.Tickets.TicketsData.FirstOrDefault(x => x.ChannelId == Context.Channel.Id).DeleteTime = DateTime.Now.AddDays(3);
+            Model.Data.Tickets.TicketsData.FirstOrDefault(x => x.ChannelId == Context.Channel.Id).IsFinished = true;
 
             var closeTicketMessage = (SocketMessageComponent)Context.Interaction;
             var closeTicketEmbed = closeTicketMessage.Message.Embeds.First().ToEmbedBuilder();
             closeTicketEmbed.Color = Color.Green;
             await closeTicketMessage.UpdateAsync(msg => { msg.Embeds = new Embed[] { closeTicketEmbed.Build() }; msg.Components = new ComponentBuilder().Build(); });
 
-            var ticketStatusMessageId = Model.Data.Helper.MessageTitcketPair.Where(x=>x.Value == Context.Channel.Id).FirstOrDefault().Key;
-            if (ticketStatusMessageId == 0)
-                return;
-
-            var helperTicketChannel = Context.Guild.GetTextChannel(Model.Data.Helper.NewTicketsChannelId);
-            var ticketStatusMessage = helperTicketChannel.GetMessageAsync(ticketStatusMessageId).Result;
+            var ticketStatusMessage = ticketChannel.GetMessageAsync(ticket.MessageId).Result;
 
             var embed = ticketStatusMessage?.Embeds.First();
             var newEmbed = embed.ToEmbedBuilder();
             newEmbed.Title = embed?.Title.Replace("[В работе]", "[Закрыто]");
             newEmbed.AddField("Описание проблемы", closeTicketEmbed.Description);
-            newEmbed.AddField("Закрыл ", $"{MentionUtils.MentionUser(Context.User.Id)}");
+            newEmbed.AddField("Закрыл ", $"{MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username})");
             newEmbed.Color = Color.Green;
 
-            await Context.Guild.GetTextChannel(Model.Data.Helper.OldTicketsChannelId).SendMessageAsync(embed: newEmbed.Build())
-                .ContinueWith(task =>
-                {
-                    helperTicketChannel.DeleteMessageAsync(ticketStatusMessageId).Wait();
-                    Model.Data.Helper.MessageTitcketPair.Remove(ticketStatusMessageId);
-                });
-        }
-
-        #endregion
-
-        #region TicketModels
-
-        public class HelperTicketModal : IModal
-        {
-            public string Title => "Создание обращения к хелперу";
-
-            [InputLabel("Подробно опишите суть обращения")]
-            [ModalTextInput("reason", TextInputStyle.Paragraph, placeholder: "Помочь с подключением к серверу, проведение собеседования, квенте т.д.", maxLength: 200)]
-            public string Reason { get; set; }
-        }
-
-        public class CuratorTicketModal : IModal
-        {
-            public string Title => "Создание обращения к курации";
-
-            [InputLabel("Подробно опишите суть обращения")]
-            [ModalTextInput("reason", TextInputStyle.Paragraph, placeholder: "Выдача/восстановление доната и вещей, вопрос по правилам, разбор ситуации и т.д.", maxLength: 200)]
-            public string Reason { get; set; }
-        }
-
-        public class AdminTicketModal : IModal
-        {
-            public string Title => "Создание обращения к администрации";
-
-            [InputLabel("Подробно опишите суть обращения")]
-            [ModalTextInput("reason", TextInputStyle.Paragraph, placeholder: "Вопросы по поводу занятия ГП, жалобы на курацию, частные случаи и т.д.", maxLength: 200)]
-            public string Reason { get; set; }
+            await Context.Guild.GetTextChannel(Model.Data.Tickets.TicketSettings.TicketLogs).SendMessageAsync(embed: newEmbed.Build());
+            await FollowupAsync("Тикет закрыт", ephemeral: true);
         }
 
         #endregion
