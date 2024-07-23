@@ -12,11 +12,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NS.Bot.Shared", "NS.Bot.Sha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NS.Bot.BuisnessLogic", "NS.Bot.BuisnessLogic\NS.Bot.BuisnessLogic.csproj", "{B95CC293-2F13-420F-986E-F3E902C8B4AE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NS.Bot.Commands", "NS.Bot.Commands\NS.Bot.Commands.csproj", "{24ED9AF4-68C6-45CD-89E5-71B51D917627}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NS.Bot.App", "NS.Bot.App\NS.Bot.App.csproj", "{750A3345-C90F-4299-96CB-53B0E003A43C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NS.Bot.App", "NS.Bot.App\NS.Bot.App.csproj", "{750A3345-C90F-4299-96CB-53B0E003A43C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NS.Bot.Migrations", "NS.Bot.Migrations\NS.Bot.Migrations.csproj", "{CBAFCF08-46F6-470C-852D-52715FB1272D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NS.Bot.Migrations", "NS.Bot.Migrations\NS.Bot.Migrations.csproj", "{CBAFCF08-46F6-470C-852D-52715FB1272D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,10 +30,6 @@ Global
 		{B95CC293-2F13-420F-986E-F3E902C8B4AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B95CC293-2F13-420F-986E-F3E902C8B4AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B95CC293-2F13-420F-986E-F3E902C8B4AE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{24ED9AF4-68C6-45CD-89E5-71B51D917627}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{24ED9AF4-68C6-45CD-89E5-71B51D917627}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{24ED9AF4-68C6-45CD-89E5-71B51D917627}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{24ED9AF4-68C6-45CD-89E5-71B51D917627}.Release|Any CPU.Build.0 = Release|Any CPU
 		{750A3345-C90F-4299-96CB-53B0E003A43C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{750A3345-C90F-4299-96CB-53B0E003A43C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{750A3345-C90F-4299-96CB-53B0E003A43C}.Release|Any CPU.ActiveCfg = Release|Any CPU

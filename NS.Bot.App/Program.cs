@@ -9,22 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NS.Bot.App.Handlers;
 using NS.Bot.App.Logging;
-using NS.Bot.App.Models;
 using NS.Bot.BuisnessLogic;
-using System.Text.RegularExpressions;
 using System.Timers;
-using Timer = System.Timers.Timer;
 
 namespace NS.Bot.App
 {
-    public static class Model
-    {
-        public static BotData Data;
-        public static ConsoleLogger logger;
-        public static string publicPdaWebHook;
-        public static string systemInfoWebHook;
-        public static Regex radioname;
-    }
     public class Program
     {
         private DiscordSocketClient _client;
@@ -94,17 +83,17 @@ namespace NS.Bot.App
 
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
-            Model.logger = new ConsoleLogger();
-            Model.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
+            //Model.logger = new ConsoleLogger();
+            //Model.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
 
             //Timer dataTimer = new Timer(60000);
             //dataTimer.Elapsed += TimerEvent;
             //dataTimer.AutoReset = true;
             //dataTimer.Start();
-            await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
+            //await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
-            _client.UserVoiceStateUpdated += VoiceRemover;
-            _client.MessageReceived += RndMessagesDelete;
+            //_client.UserVoiceStateUpdated += VoiceRemover;
+            //_client.MessageReceived += RndMessagesDelete;
 
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
             commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
@@ -120,24 +109,24 @@ namespace NS.Bot.App
             await Task.Delay(-1);
         }
 
-        private async Task RndMessagesDelete(SocketMessage message)
-        {
-            if (!Model.Data.Channels.Radio.IsRadioEnabled)
-                return;
+        //private async Task RndMessagesDelete(SocketMessage message)
+        //{
+        //    if (!Model.Data.Channels.Radio.IsRadioEnabled)
+        //        return;
 
-            if (message.Author.IsBot || message.Author.IsWebhook)
-                return;
+        //    if (message.Author.IsBot || message.Author.IsWebhook)
+        //        return;
 
-            if (message.Channel.Id != Model.Data.Channels.Radio.RadioInitChannelId)
-                return;
+        //    if (message.Channel.Id != Model.Data.Channels.Radio.RadioInitChannelId)
+        //        return;
 
-            await message.DeleteAsync();
-            var msg = await message.Channel.SendMessageAsync("Для создания рации **напишите** комманду\n/частота");
-            Timer dataTimer = new Timer(5000);
-            dataTimer.AutoReset = false;
-            dataTimer.Elapsed += (sender, e) => { DeleteRndMessage(sender, e, msg); };
-            dataTimer.Start();
-        }
+        //    await message.DeleteAsync();
+        //    var msg = await message.Channel.SendMessageAsync("Для создания рации **напишите** комманду\n/частота");
+        //    Timer dataTimer = new Timer(5000);
+        //    dataTimer.AutoReset = false;
+        //    dataTimer.Elapsed += (sender, e) => { DeleteRndMessage(sender, e, msg); };
+        //    dataTimer.Start();
+        //}
 
         private void DeleteRndMessage(object sender, ElapsedEventArgs e, RestUserMessage msg)
         {
@@ -161,24 +150,24 @@ namespace NS.Bot.App
         //    await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
         //}
 
-        private async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after)
-        {
-            if (!Model.Data.Channels.Radio.IsRadioEnabled)
-                return;
+        //private async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after)
+        //{
+        //    if (!Model.Data.Channels.Radio.IsRadioEnabled)
+        //        return;
 
-            if (Model.Data.Channels.Radio.ActiveRadios == null)
-                return;
+        //    if (Model.Data.Channels.Radio.ActiveRadios == null)
+        //        return;
 
-            if (before.VoiceChannel == null || before.VoiceChannel == after.VoiceChannel)
-                return;
+        //    if (before.VoiceChannel == null || before.VoiceChannel == after.VoiceChannel)
+        //        return;
 
-            if (Model.Data.Channels.Radio.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
-            {
-                Model.Data.Channels.Radio.ActiveRadios.Remove(before.VoiceChannel.Id);
-                await before.VoiceChannel.DeleteAsync();
-                await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
-            }
-        }
+        //    if (Model.Data.Channels.Radio.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
+        //    {
+        //        Model.Data.Channels.Radio.ActiveRadios.Remove(before.VoiceChannel.Id);
+        //        await before.VoiceChannel.DeleteAsync();
+        //        await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
+        //    }
+        //}
 
         private static bool IsDebug()
         {

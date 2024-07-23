@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NS.Bot.App\NS.Bot.App.csproj" />
     <ProjectReference Include="..\NS.Bot.BuisnessLogic\NS.Bot.BuisnessLogic.csproj" />
+    <ProjectReference Include="..\NS.Bot.Shared\NS.Bot.Shared.csproj" />
   </ItemGroup>
 
 </Project>

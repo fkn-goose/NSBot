@@ -1,4 +1,6 @@
-﻿namespace NS.Bot.App.Models
+﻿using System.Collections.Generic;
+
+namespace NS.Bot.Shared.Models
 {
     public class Channels
     {

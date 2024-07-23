@@ -1,4 +1,5 @@
 ﻿using NS.Bot.Shared.Entities;
+using System.Threading.Tasks;
 
 namespace NS.Bot.BuisnessLogic.Services
 {
@@ -10,16 +11,18 @@ namespace NS.Bot.BuisnessLogic.Services
             _db = db;
         }
 
-        public async void Update(T entity)
+        public async Task<long> Update(T entity)
         {
             _db.Update(entity);
             await _db.SaveChangesAsync();
+            return entity.Id;
         }
 
-        public async void Create(T entity)
+        public async Task<long> Create(T entity)
         {
             _db.Add(entity);
             await _db.SaveChangesAsync();
+            return entity.Id;
         }
     }
 }
