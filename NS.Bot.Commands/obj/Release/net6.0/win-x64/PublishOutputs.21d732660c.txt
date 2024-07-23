@@ -1,2 +1,0 @@
-D:\Projects\NS2Bot\NS2Bot\bin\Release\net6.0\publish\win-x64\NS2Bot.pdb
-D:\Projects\NS2Bot\NS2Bot\bin\Release\net6.0\publish\win-x64\NS2Bot.exe
