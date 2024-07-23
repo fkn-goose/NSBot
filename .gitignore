@@ -24,3 +24,6 @@ NS2Bot/token.txt
 /NS2Bot/bin/Debug/net6.0
 /NS2Bot/obj/Debug/net6.0/apphost.exe
 /NS2Bot/obj/Debug/net6.0/NS2Bot.csproj.FileListAbsolute.txt
+/NS2Bot/appsettings.json
+/NS.Bot.App/appsettings.json
+/NS.Bot.App/appsettings.json

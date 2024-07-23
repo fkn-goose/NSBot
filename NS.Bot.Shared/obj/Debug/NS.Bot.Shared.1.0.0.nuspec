@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>NS.Bot.Shared</id>
+    <version>1.0.0</version>
+    <authors>NS.Bot.Shared</authors>
+    <description>Package Description</description>
+    <repository type="git" commit="add2af0ab0285b5a19545e94beea666a73394cd7" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="Discord.Net.Interactions" version="3.15.3" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore.Relational" version="7.0.20" exclude="Build,Analyzers" />
+        <dependency id="Npgsql.EntityFrameworkCore.PostgreSQL" version="7.0.18" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="D:\Projects\NS2Bot\NS.Bot.Shared\bin\Debug\net6.0\NS.Bot.Shared.dll" target="lib\net6.0\NS.Bot.Shared.dll" />
+  </files>
+</package>
