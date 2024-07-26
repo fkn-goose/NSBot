@@ -1,5 +1,8 @@
 ﻿namespace NS.Bot.Shared.Entities
 {
+    /// <summary>
+    /// Сервер дискорда
+    /// </summary>
     public class GuildEntity : BaseEntity
     {
         /// <summary>

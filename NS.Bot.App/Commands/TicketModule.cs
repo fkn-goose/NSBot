@@ -133,6 +133,10 @@ namespace NS.Bot.App.Commands
             await CreateTicket(new BaseTicket(modal));
         }
 
+        #endregion
+
+        #region Ticket Commands
+
         private async Task CreateTicket(BaseTicket modal)
         {
             //Создаем пустые переменные для заполнения в зависимости от типа тикета
