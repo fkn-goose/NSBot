@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using NS.Bot.Shared.Entities.Guild;
+using NS.Bot.Shared.Enums;
 
 namespace NS.Bot.Shared.Entities.Group
 {
@@ -7,8 +9,24 @@ namespace NS.Bot.Shared.Entities.Group
     /// </summary>
     public class GroupEntity : BaseEntity
     {
-        public string Name { get; set; }
+        /// <summary>
+        /// Название группировки
+        /// </summary>
+        public GroupsEnum Group { get; set; }
+
+        /// <summary>
+        /// Сервер к которому принадлежит группировка
+        /// </summary>
         public GuildEntity Guild { get; set; }
-        public List<GroupMember> Members { get; set; }
+
+        /// <summary>
+        /// Лидер группировки
+        /// </summary>
+        public GuildMember Leader { get; set; }
+
+        /// <summary>
+        /// Члены группировки
+        /// </summary>
+        public List<GuildMember> Groupmembers { get; set; }
     }
 }

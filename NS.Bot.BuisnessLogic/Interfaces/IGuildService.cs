@@ -1,10 +1,15 @@
-﻿using NS.Bot.Shared.Entities;
+﻿using NS.Bot.Shared.Entities.Guild;
+using System.Threading.Tasks;
 
 namespace NS.Bot.BuisnessLogic.Interfaces
 {
     public interface IGuildService : IBaseService<GuildEntity>
     {
-        GuildEntity Get(long id); 
-        GuildEntity GetByDiscordId(ulong id);
+        /// <summary>
+        /// Ищет сервер по его DiscrodId
+        /// </summary>
+        /// <param name="id">uuid discord сервера</param>
+        /// <returns>Экземпляр сервера</returns>
+        Task<GuildEntity> GetByDiscordId(ulong id);
     }
 }

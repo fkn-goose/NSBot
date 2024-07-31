@@ -5,6 +5,9 @@ namespace NS.Bot.Shared.Enums
 {
     public enum GroupsEnum
     {
+        [ChoiceDisplay("Одиночка")]
+        [Description("Одиночка")]
+        Loner,
         [ChoiceDisplay("ИИГ")]
         [Description("ИИГ")]
         IRG,

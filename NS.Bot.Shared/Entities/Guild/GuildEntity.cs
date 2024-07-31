@@ -1,4 +1,4 @@
-﻿namespace NS.Bot.Shared.Entities
+﻿namespace NS.Bot.Shared.Entities.Guild
 {
     /// <summary>
     /// Сервер дискорда

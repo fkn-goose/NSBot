@@ -22,5 +22,6 @@ namespace NS.Bot.App.Commands
 
             await RespondAsync("Сервер инициализирован", ephemeral: true);
         }
+        //Добавить создание группировки одиночек
     }
 }

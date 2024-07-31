@@ -1,4 +1,6 @@
-﻿namespace NS.Bot.Shared.Entities
+﻿using NS.Bot.Shared.Entities.Guild;
+
+namespace NS.Bot.Shared.Entities
 {
     public class TicketSettings : BaseEntity
     {

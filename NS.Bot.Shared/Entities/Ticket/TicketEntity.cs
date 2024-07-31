@@ -1,4 +1,5 @@
-﻿using NS.Bot.Shared.Enums;
+﻿using NS.Bot.Shared.Entities.Guild;
+using NS.Bot.Shared.Enums;
 using System;
 
 namespace NS.Bot.Shared.Entities

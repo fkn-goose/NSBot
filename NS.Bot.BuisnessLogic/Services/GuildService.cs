@@ -1,6 +1,8 @@
-﻿using NS.Bot.BuisnessLogic.Interfaces;
-using NS.Bot.Shared.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using NS.Bot.BuisnessLogic.Interfaces;
+using NS.Bot.Shared.Entities.Guild;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NS.Bot.BuisnessLogic.Services
 {
@@ -8,14 +10,9 @@ namespace NS.Bot.BuisnessLogic.Services
     {
         public GuildService(AppDbContext db) : base(db) { }
 
-        public GuildEntity Get(long id)
+        public async Task<GuildEntity> GetByDiscordId(ulong id) 
         {
-            return _db.Guilds.FirstOrDefault(x=>x.Id == id) ?? new GuildEntity();
-        }
-
-        public GuildEntity GetByDiscordId(ulong id) 
-        {
-            return _db.Guilds.FirstOrDefault(x=>x.GuildId == id) ?? new GuildEntity();
+            return await GetAll().FirstOrDefaultAsync(x=>x.GuildId == id);
         }
     }
 }
