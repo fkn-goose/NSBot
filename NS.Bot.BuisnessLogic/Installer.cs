@@ -14,6 +14,7 @@ namespace NS.Bot.BuisnessLogic
 
             container.AddScoped<IBaseService<GuildEntity>, BaseService<GuildEntity>>();
             container.AddScoped<IBaseService<MemberEntity>, BaseService<MemberEntity>>();
+            container.AddScoped<IBaseService<GuildMember>, BaseService<GuildMember>>();
 
             #endregion
 
