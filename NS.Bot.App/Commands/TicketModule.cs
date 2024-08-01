@@ -4,7 +4,7 @@ using Discord.WebSocket;
 using NS.Bot.BuisnessLogic.Interfaces;
 using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Enums;
-using NS2Bot.Extensions;
+using NS.Bot.Shared.Extensions;
 using static NS2Bot.Extensions.ModalExtensions;
 
 namespace NS.Bot.App.Commands
@@ -180,7 +180,7 @@ namespace NS.Bot.App.Commands
 
             var ticketData = new TicketEntity()
             {
-                Guild = _guildService.GetByDiscordId(Context.Guild.Id),
+                Guild = _guildService.GetByDiscordId(Context.Guild.Id).Result,
                 ChannelId = ticketChannelId,
                 DeleteTime = null,
                 Type = modal.TicketType

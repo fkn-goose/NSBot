@@ -1,17 +1,13 @@
 ﻿//using Discord;
 //using Discord.Interactions;
 //using Discord.WebSocket;
-//using NS.Bot.App;
-//using System.Collections.Generic;
-//using System.Linq;
 //using System.Text.RegularExpressions;
-//using System.Threading.Tasks;
 
 //namespace NS2Bot.CommandModules
 //{
 //    public class RadioModule : InteractionModuleBase<SocketInteractionContext>
 //    {
-//        Regex radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
+//        readonly Regex radioname = new("\\d\\d\\d\\.\\d\\d\\d");
 
 //        [SlashCommand("startradio", "Инициализация радио канала")]
 //        [RequireOwner]

@@ -4,7 +4,7 @@ using NS.Bot.Shared.Entities.Group;
 namespace NS.Bot.Shared.Entities.Guild
 {
     /// <summary>
-    /// Член группировки
+    /// Участник Discord-сервера
     /// </summary>
     public class GuildMember : BaseEntity
     {

@@ -11,6 +11,6 @@ namespace NS.Bot.BuisnessLogic.Interfaces
         /// </summary>
         /// <param name="member">Экземпляр участника</param>
         /// <returns>Участник сервера</returns>
-        Task<GuildMember> GetByMember(MemberEntity member);
+        //Task<GuildMember> GetByMember(MemberEntity member);
     }
 }

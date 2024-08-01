@@ -14,7 +14,7 @@ namespace NS.Bot.App.Commands
         [SlashCommand("init", "Инициализация сервера")]
         public async Task InitServer()
         {
-            await _guildService.Create(new Shared.Entities.GuildEntity()
+            await _guildService.Create(new Shared.Entities.Guild.GuildEntity
             {
                 GuildId = Context.Guild.Id,
                 Name = Context.Guild.Name,

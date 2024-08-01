@@ -7,8 +7,7 @@ using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Enums;
-using NS2Bot.Extensions;
-using System.Diagnostics.Metrics;
+using NS.Bot.Shared.Extensions;
 
 namespace NS.Bot.Commands.CommandModules
 {
@@ -16,17 +15,18 @@ namespace NS.Bot.Commands.CommandModules
     {
         private readonly IGroupService _groupService;
         private readonly IMemberService _memberService;
-
-        private readonly IGuildMemberService _guildMemberService;
         private readonly IGuildService _guildService;
 
+        private readonly IBaseService<GuildMember> _guildMemberService;
+
         private readonly GuildEntity CurrentGuild;
-        public GroupModule(IGroupService groupService, IMemberService memberService, IGuildMemberService guildMemberService, IGuildService guildService)
+        public GroupModule(IGroupService groupService, IMemberService memberService, IGuildService guildService, IBaseService<GuildMember> guildMemberService)
         {
             _groupService = groupService;
             _memberService = memberService;
-            _guildMemberService = guildMemberService;
             _guildService = guildService;
+
+            _guildMemberService = guildMemberService;
 
             CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
         }
@@ -65,7 +65,7 @@ namespace NS.Bot.Commands.CommandModules
             else
             {
                 //Создаем или получаем члена сервера
-                guildMember = _guildMemberService.GetByMember(member).Result;
+                guildMember = _memberService.GetCurrentGuildMember(member, CurrentGuild);
                 if (guildMember == null)
                     CreateGuildMember(ref guildMember);
             }
@@ -120,7 +120,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            guildMember = _guildMemberService.GetByMember(member).Result;
+            guildMember = _memberService.GetCurrentGuildMember(member, CurrentGuild);
             if (guildMember == null)
             {
                 CreateGuildMember(ref guildMember);
@@ -188,7 +188,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            guildMember = _guildMemberService.GetByMember(member).Result;
+            guildMember = _memberService.GetCurrentGuildMember(member, CurrentGuild);
             if (guildMember == null)
             {
                 CreateGuildMember(ref guildMember);
@@ -275,7 +275,7 @@ namespace NS.Bot.Commands.CommandModules
             if (group.Result.Leader != null)
             {
                 groupLeaderDiscrodUser = Context.Guild.GetUser(_memberService.GetMemberByGuildMember(group.Result.Leader).Result.DiscordId);
-                groupEmbed.AddField("Лидер группировки", string.Format("{0} {1}", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username)
+                groupEmbed.AddField("Лидер группировки", string.Format("{0} {1}", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username));
             }
 
             groupEmbed.AddField("Состав группировки", memberNames)
@@ -300,14 +300,14 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            var guildMember = _guildMemberService.GetByMember(member);
-            if(guildMember.Result == null)
+            var guildMember = _memberService.GetCurrentGuildMember(member, CurrentGuild);
+            if(guildMember == null)
             {
                 await RespondAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 return;
             }
 
-            var group = _groupService.GetGuildMembersGroup(guildMember.Result);
+            var group = _groupService.GetGuildMembersGroup(guildMember);
             if(group.Result == null) 
             {
                 await RespondAsync("Игрок не состоит ни в одной группировке", ephemeral: true);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace NS2Bot.Extensions
+namespace NS.Bot.Shared.Extensions
 {
     public static class GetValueExtension
     {
