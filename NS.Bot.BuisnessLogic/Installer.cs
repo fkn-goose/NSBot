@@ -21,6 +21,7 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<ITicketService, TicketService>();
             container.AddScoped<IGroupService, GroupService>();
             container.AddScoped<IGuildMemberService, GuildMemberService>();
+            container.AddScoped<IMemberService, MemberService>();
         }
     }
 }
