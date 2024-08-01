@@ -9,7 +9,7 @@ namespace NS.Bot.BuisnessLogic
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<GuildEntity> Guilds { get; set; }
+        public DbSet<MemberEntity> Members { get; set; }
 
         #region Ticket
 
@@ -21,7 +21,13 @@ namespace NS.Bot.BuisnessLogic
         #region Groups
 
         public DbSet<GroupEntity> Groups { get; set; }
-        public DbSet<GuildMember> GroupMembers { get; set; }
+
+        #endregion
+
+        #region Guild
+
+        public DbSet<GuildMember> GuildMembers { get; set; }
+        public DbSet<GuildEntity> Guilds { get; set; }
 
         #endregion
 

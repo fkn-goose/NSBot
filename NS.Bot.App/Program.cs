@@ -37,7 +37,7 @@ namespace NS.Bot.App
         {
             var builder = Host.CreateDefaultBuilder(args);
 
-            var path = Path.GetFullPath("appsettings.json");
+            var path = Path.GetFullPath("../../../appsettings.json");
             var config = new ConfigurationBuilder()
 #if DEBUG
                 .AddJsonFile(path, false)

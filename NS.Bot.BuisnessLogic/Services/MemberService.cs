@@ -20,7 +20,11 @@ namespace NS.Bot.BuisnessLogic.Services
 
         public GuildMember GetCurrentGuildMember(MemberEntity member, GuildEntity guild)
         {
-            return member.GuildMembers.FirstOrDefault(x => x.Guild.GuildId == guild.GuildId);
+            if (member.GuildMembers == null)
+                return null;
+
+            var guildMember = member.GuildMembers.FirstOrDefault(x => x.Guild.GuildId == guild.GuildId);
+            return guildMember;
         }
     }
 }

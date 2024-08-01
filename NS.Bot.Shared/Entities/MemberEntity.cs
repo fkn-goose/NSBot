@@ -10,6 +10,5 @@ namespace NS.Bot.Shared.Entities
     {
         public ulong DiscordId { get; set; }
         public ulong? SteamId { get; set; }
-        public List<GuildMember> GuildMembers { get; set; }
     }
 }

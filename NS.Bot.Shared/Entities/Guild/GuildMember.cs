@@ -8,6 +8,19 @@ namespace NS.Bot.Shared.Entities.Guild
     /// </summary>
     public class GuildMember : BaseEntity
     {
+        /// <summary>
+        /// Сервер участника
+        /// </summary>
         public GuildEntity Guild { get; set; }
+
+        /// <summary>
+        /// Группировка участника
+        /// </summary>
+        public GroupEntity Group { get; set; }
+
+        /// <summary>
+        /// Общие данные участника
+        /// </summary>
+        public MemberEntity Member { get; set; }
     }
 }

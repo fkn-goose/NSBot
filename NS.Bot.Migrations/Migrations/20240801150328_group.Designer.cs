@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NS.Bot.BuisnessLogic;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NS.Bot.Migrations.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240801150328_group")]
+    partial class group
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,37 +87,13 @@ namespace NS.Bot.Migrations.Migrations
                     b.Property<long?>("GuildId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("MemberEntityId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GroupEntityId");
 
                     b.HasIndex("GuildId");
 
-                    b.HasIndex("MemberEntityId");
-
-                    b.ToTable("GuildMembers");
-                });
-
-            modelBuilder.Entity("NS.Bot.Shared.Entities.MemberEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("DiscordId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal?>("SteamId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Members");
+                    b.ToTable("GroupMembers");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.TicketEntity", b =>
@@ -232,10 +211,6 @@ namespace NS.Bot.Migrations.Migrations
                         .WithMany()
                         .HasForeignKey("GuildId");
 
-                    b.HasOne("NS.Bot.Shared.Entities.MemberEntity", null)
-                        .WithMany("GuildMembers")
-                        .HasForeignKey("MemberEntityId");
-
                     b.Navigation("Guild");
                 });
 
@@ -260,11 +235,6 @@ namespace NS.Bot.Migrations.Migrations
             modelBuilder.Entity("NS.Bot.Shared.Entities.Group.GroupEntity", b =>
                 {
                     b.Navigation("Groupmembers");
-                });
-
-            modelBuilder.Entity("NS.Bot.Shared.Entities.MemberEntity", b =>
-                {
-                    b.Navigation("GuildMembers");
                 });
 #pragma warning restore 612, 618
         }

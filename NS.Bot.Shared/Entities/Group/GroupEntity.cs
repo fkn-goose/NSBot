@@ -23,10 +23,5 @@ namespace NS.Bot.Shared.Entities.Group
         /// Лидер группировки
         /// </summary>
         public GuildMember Leader { get; set; }
-
-        /// <summary>
-        /// Члены группировки
-        /// </summary>
-        public List<GuildMember> Groupmembers { get; set; }
     }
 }

@@ -16,26 +16,33 @@ namespace NS.Bot.BuisnessLogic.Services
 
         public async Task<long> Update(T entity)
         {
-            _db.Update(entity);
+            _db.Set<T>().Update(entity);
             await _db.SaveChangesAsync();
             return entity.Id;
         }
 
-        public async Task<long> Create(T entity)
+        public async Task<long> CreateOrUpdate(T entity)
         {
-            _db.Add(entity);
-            await _db.SaveChangesAsync();
+            var existing = Get(entity.Id);
+            if (existing == null)
+            {
+                await _db.Set<T>().AddAsync(entity);
+                await _db.SaveChangesAsync();
+            }
+            else
+                await Update(existing.Result);
+
             return entity.Id;
         }
 
         public async Task<T> Get(long id)
         {
-            return await _db.Set<T>().AsNoTracking().FirstOrDefaultAsync(x=>x.Id == id);
+            return await _db.Set<T>().FirstOrDefaultAsync(x=>x.Id == id);
         }
 
         public IQueryable<T> GetAll()
         {
-            return _db.Set<T>().AsNoTracking();
+            return _db.Set<T>();
         }
     }
 }
