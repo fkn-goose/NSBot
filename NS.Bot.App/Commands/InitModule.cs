@@ -34,7 +34,7 @@ namespace NS.Bot.App.Commands
 
             await _groupService.CreateOrUpdate(new GroupEntity
             {
-                Group = Shared.Enums.GroupsEnum.Loner,
+                Name = Shared.Enums.GroupsEnum.Loner,
                 Guild = curGuild
             });
 

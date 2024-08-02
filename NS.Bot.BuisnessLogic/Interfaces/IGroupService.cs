@@ -8,13 +8,6 @@ namespace NS.Bot.BuisnessLogic.Interfaces
     public interface IGroupService : IBaseService<GroupEntity>
     {
         /// <summary>
-        /// Получить группировку игрока
-        /// </summary>
-        /// <param name="member">Член сервера</param>
-        /// <returns>Группировка</returns>
-        Task<GroupEntity> GetGuildMembersGroup(GuildMember member);
-
-        /// <summary>
         /// Получить группировку по названию
         /// </summary>
         /// <param name="groupEnum">Название группировки</param>

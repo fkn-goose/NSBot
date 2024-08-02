@@ -35,7 +35,7 @@ namespace NS.Bot.BuisnessLogic
         {
             modelBuilder.Entity<GroupEntity>(g =>
             {
-                g.HasIndex(u => u.Group)
+                g.HasIndex(u => u.Name)
                 .IsUnique();
             });
         }

@@ -11,9 +11,9 @@ namespace NS.Bot.BuisnessLogic.Services
     {
         public GuildMemberService(AppDbContext db) : base(db) { }
 
-        //public async Task<GuildMember> GetByMember(MemberEntity member)
-        //{
-        //    return await GetAll().FirstOrDefaultAsync(x=>x.Member.Id == member.Id);
-        //}
+        public async Task<GuildMember> GetByMember(MemberEntity member, GuildEntity guild)
+        {
+            return await GetAll().FirstOrDefaultAsync(x => x.Member.Id == member.Id && x.Guild.GuildId == guild.GuildId);
+        }
     }
 }
