@@ -11,16 +11,16 @@ namespace NS.Bot.Shared.Entities.Guild
         /// <summary>
         /// Сервер участника
         /// </summary>
-        public GuildEntity Guild { get; set; }
+        public virtual GuildEntity Guild { get; set; }
 
         /// <summary>
         /// Группировка участника
         /// </summary>
-        public GroupEntity Group { get; set; }
+        public virtual GroupEntity Group { get; set; }
 
         /// <summary>
         /// Общие данные участника
         /// </summary>
-        public MemberEntity Member { get; set; }
+        public virtual MemberEntity Member { get; set; }
     }
 }

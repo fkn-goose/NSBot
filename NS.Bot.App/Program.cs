@@ -59,7 +59,8 @@ namespace NS.Bot.App
                     GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.MessageContent,
                     LogGatewayIntentWarnings = false,
                     AlwaysDownloadUsers = true,
-                    LogLevel = LogSeverity.Debug
+                    LogLevel = LogSeverity.Debug,
+                    UseInteractionSnowflakeDate = false,
                 }));
                 services.AddTransient<ConsoleLogger>();
                 services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));

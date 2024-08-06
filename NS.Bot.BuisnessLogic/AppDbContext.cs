@@ -7,7 +7,10 @@ namespace NS.Bot.BuisnessLogic
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) 
+        {
+            ChangeTracker.LazyLoadingEnabled = false;
+        }
 
         public DbSet<MemberEntity> Members { get; set; }
 

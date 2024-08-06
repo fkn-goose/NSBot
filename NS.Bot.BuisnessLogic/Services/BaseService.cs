@@ -23,14 +23,13 @@ namespace NS.Bot.BuisnessLogic.Services
 
         public async Task<long> CreateOrUpdate(T entity)
         {
-            var existing = Get(entity.Id);
-            if (existing == null)
+            if (entity.Id == 0)
             {
                 await _db.Set<T>().AddAsync(entity);
                 await _db.SaveChangesAsync();
             }
             else
-                await Update(existing.Result);
+                await Update(entity);
 
             return entity.Id;
         }

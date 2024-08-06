@@ -22,6 +22,6 @@ namespace NS.Bot.Shared.Entities.Group
         /// <summary>
         /// Лидер группировки
         /// </summary>
-        public long Leader { get; set; }
+        public long? Leader { get; set; }
     }
 }

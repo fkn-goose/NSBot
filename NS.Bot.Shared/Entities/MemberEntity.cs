@@ -1,7 +1,4 @@
-﻿using NS.Bot.Shared.Entities.Guild;
-using System.Collections.Generic;
-
-namespace NS.Bot.Shared.Entities
+﻿namespace NS.Bot.Shared.Entities
 {
     /// <summary>
     /// Данные игрока

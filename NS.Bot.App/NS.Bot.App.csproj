@@ -30,4 +30,10 @@
     <ProjectReference Include="..\NS.Bot.Migrations\NS.Bot.Migrations.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

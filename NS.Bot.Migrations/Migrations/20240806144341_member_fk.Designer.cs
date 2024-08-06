@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NS.Bot.BuisnessLogic;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NS.Bot.Migrations.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240806144341_member_fk")]
+    partial class member_fk
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,10 +74,7 @@ namespace NS.Bot.Migrations.Migrations
             modelBuilder.Entity("NS.Bot.Shared.Entities.Guild.GuildMember", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<long?>("GroupId")
                         .HasColumnType("bigint");
@@ -82,16 +82,11 @@ namespace NS.Bot.Migrations.Migrations
                     b.Property<long?>("GuildId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("MemberId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GroupId");
 
                     b.HasIndex("GuildId");
-
-                    b.HasIndex("MemberId");
 
                     b.ToTable("GuildMembers");
                 });
@@ -226,7 +221,9 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasOne("NS.Bot.Shared.Entities.MemberEntity", "Member")
                         .WithMany()
-                        .HasForeignKey("MemberId");
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Group");
 

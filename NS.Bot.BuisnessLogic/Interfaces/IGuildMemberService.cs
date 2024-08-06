@@ -1,5 +1,7 @@
 ﻿using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Guild;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NS.Bot.BuisnessLogic.Interfaces
@@ -13,5 +15,6 @@ namespace NS.Bot.BuisnessLogic.Interfaces
         /// <param name="guild">Экземпляр текущего сервера</param>
         /// <returns>Участник сервера</returns>
         Task<GuildMember> GetByMember(MemberEntity member, GuildEntity guild);
+        new IQueryable<GuildMember> GetAll();
     }
 }
