@@ -29,7 +29,7 @@ namespace NS.Bot.Commands.CommandModules
             _guildMemberService = guildMemberService;
         }
 
-        [SlashCommand("addgroupmember", "Вписать игрока в группировку")]
+        [SlashCommand("вписать", "Вписать игрока в группировку")]
         public async Task AddToGroup([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum, [Summary(name: "Пользователь", description: "Пользователь")] IUser user)
         {
             if (user.IsBot)
@@ -79,6 +79,7 @@ namespace NS.Bot.Commands.CommandModules
 
             if ((currentGroup != null && currentGroup.Name == GroupsEnum.Loner) || currentGroup == null)
             {
+                //null быть не может, оно пиздит
                 guildMember.Group = requestedGroup;
                 await _guildMemberService.Update(guildMember);
 
@@ -90,7 +91,7 @@ namespace NS.Bot.Commands.CommandModules
             return;
         }
 
-        [SlashCommand("removegroupmember", "Выписать игрока из группировки")]
+        [SlashCommand("выписать", "Выписать игрока из группировки")]
         public async Task RemoveFromGroup([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum group, [Summary(name: "Пользователь", description: "Пользователь")] IUser user)
         {
             if (user.IsBot)
@@ -142,7 +143,7 @@ namespace NS.Bot.Commands.CommandModules
             await FollowupAsync($"Игрок успешно выписан из групппировки {group.GetDescription()}", ephemeral: true);
         }
 
-        [SlashCommand("setleader", "Установить лидера группировки")]
+        [SlashCommand("лидер", "Установить лидера группировки")]
         public async Task SetLeader([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum, [Summary(name: "Лидер", description: "Пользователь")] IUser user)
         {
             if (user.IsBot)
@@ -187,7 +188,7 @@ namespace NS.Bot.Commands.CommandModules
             }
 
             var currentGroup = guildMember.Group;
-            if (currentGroup.Name == GroupsEnum.Loner)
+            if (currentGroup == null || currentGroup.Name == GroupsEnum.Loner)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 return;
@@ -204,10 +205,16 @@ namespace NS.Bot.Commands.CommandModules
             await FollowupAsync($"Игрок успешно установлен как лидер группировки {groupsEnum.GetDescription()}", ephemeral: true);
         }
 
-        [SlashCommand("disbandgroup", "Расформировать группировку")]
+        [SlashCommand("расформ", "Расформировать группировку")]
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task DisbandGroup([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum)
         {
+            if(groupsEnum == GroupsEnum.Loner)
+            {
+                await RespondAsync("Нельзя расформировать одиночек!", ephemeral: true);
+                return;
+            }
+
             await DeferAsync(ephemeral: true);
 
             CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
@@ -216,7 +223,7 @@ namespace NS.Bot.Commands.CommandModules
             var groupMembers = _guildMemberService.GetAll().Where(x => x.Guild.GuildId == CurrentGuild.GuildId && x.Group.Name == groupsEnum).ToList();
             if (groupMembers == null || !groupMembers.Any())
             {
-                await RespondAsync("Группировка пуста", ephemeral: true);
+                await FollowupAsync($"В группировке \"{groupsEnum.GetDescription()}\" нет игроков", ephemeral: true);
                 return;
             }
 
@@ -227,22 +234,22 @@ namespace NS.Bot.Commands.CommandModules
                 await _guildMemberService.Update(groupMember);
             }
 
-            group.Leader = 0;
+            group.Leader = null;
 
             await _groupService.Update(group);
             await FollowupAsync($"Группировка {groupsEnum.GetDescription()} расформирована", ephemeral: true);
         }
 
-        [SlashCommand("groupmembers", "Список игроков группировки")]
+        [SlashCommand("состав", "Состав группировки")]
         public async Task GetGroupMembers([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum)
         {
-            await DeferAsync(ephemeral: true);
+            await DeferAsync(ephemeral: false);
 
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
             var group = await _groupService.GetGroupByEnum(groupsEnum, CurrentGuild);
             if (group == null)
             {
-                await FollowupAsync($"В группировке \"{groupsEnum.GetDescription()}\" нет игроков", ephemeral: true);
+                await FollowupAsync($"В группировке \"{groupsEnum.GetDescription()}\" нет игроков", ephemeral: false);
                 return;
             }
 
@@ -253,7 +260,7 @@ namespace NS.Bot.Commands.CommandModules
 
             if (groupMembers == null || !groupMembers.Any())
             {
-                await FollowupAsync($"В группировке \"{groupsEnum.GetDescription()}\" нет игроков", ephemeral: true);
+                await FollowupAsync($"В группировке \"{groupsEnum.GetDescription()}\" нет игроков", ephemeral: false);
                 return;
             }
 
@@ -269,22 +276,22 @@ namespace NS.Bot.Commands.CommandModules
             }
 
             var groupEmbed = new EmbedBuilder()
-                .WithTitle($"Состав группировки - {GetValueExtension.GetDescription(groupsEnum)}");
+                .WithTitle($"Группировка {GetValueExtension.GetDescription(groupsEnum)}");
             SocketGuildUser groupLeaderDiscrodUser;
             if (group.Leader != null)
             {
                 var groupLeaderGuildMember = await _guildMemberService.Get(group.Leader.Value);
                 groupLeaderDiscrodUser = Context.Guild.GetUser(groupLeaderGuildMember.Member.DiscordId);
-                groupEmbed.AddField("Лидер группировки", string.Format("{0} {1}", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username));
+                groupEmbed.AddField("Лидер группировки", string.Format("{0} ({1})", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username));
             }
 
-            groupEmbed.AddField("Состав группировки", memberNames)
+            groupEmbed.AddField("Состав:", memberNames)
                       .WithColor(Color.Blue);
-
-            await FollowupAsync(embed: groupEmbed.Build(), ephemeral: true);
+            
+            await FollowupAsync(embed: groupEmbed.Build(), ephemeral: false);
         }
 
-        [UserCommand("getgroup")]
+        [UserCommand("группировка игрока")]
         public async Task GetGroup(IUser user)
         {
             if (user.IsBot)
