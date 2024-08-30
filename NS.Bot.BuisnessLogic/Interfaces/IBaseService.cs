@@ -9,5 +9,6 @@ namespace NS.Bot.BuisnessLogic.Interfaces
         Task<long> CreateOrUpdate(T entity);
         Task<T> Get(long id);
         IQueryable<T> GetAll();
+        Task Delete(T entity);  
     }
 }

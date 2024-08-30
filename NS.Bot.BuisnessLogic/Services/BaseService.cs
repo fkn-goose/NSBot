@@ -43,5 +43,11 @@ namespace NS.Bot.BuisnessLogic.Services
         {
             return _db.Set<T>();
         }
+
+        public async Task Delete(T entity)
+        {
+            _db.Set<T>().Remove(entity);
+            await _db.SaveChangesAsync();
+        }
     }
 }

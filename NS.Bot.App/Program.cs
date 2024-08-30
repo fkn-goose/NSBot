@@ -10,6 +10,8 @@ using Microsoft.Extensions.Hosting;
 using NS.Bot.App.Handlers;
 using NS.Bot.App.Logging;
 using NS.Bot.BuisnessLogic;
+using NS.Bot.BuisnessLogic.Interfaces;
+using NS.Bot.Shared.Entities.Radio;
 using System.Timers;
 
 namespace NS.Bot.App
@@ -82,6 +84,9 @@ namespace NS.Bot.App
             _client = provider.GetRequiredService<DiscordSocketClient>();
             var config = provider.GetRequiredService<IConfigurationRoot>();
 
+            var radioSettingsService = provider.GetService<IRadioSettingsService>();
+            var radioService = provider.GetService<IBaseService<RadioEntity>>();
+
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
             //Model.logger = new ConsoleLogger();
@@ -93,8 +98,9 @@ namespace NS.Bot.App
             //dataTimer.Start();
             //await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
 
-            //_client.UserVoiceStateUpdated += VoiceRemover;
-            //_client.MessageReceived += RndMessagesDelete;
+
+            _client.MessageReceived += (message) => RndMessagesDelete(message, radioSettingsService);
+            _client.UserVoiceStateUpdated += (user, before, after) => VoiceRemover(user, before, after, radioSettingsService, radioService);
 
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
             commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
@@ -110,73 +116,64 @@ namespace NS.Bot.App
             await Task.Delay(-1);
         }
 
-        //private async Task RndMessagesDelete(SocketMessage message)
-        //{
-        //    if (!Model.Data.Channels.Radio.IsRadioEnabled)
-        //        return;
+        public async Task RndMessagesDelete(SocketMessage message, IRadioSettingsService radioSettingsService)
+        {
+            if (message.Author.IsBot || message.Author.IsWebhook)
+                return;
 
-        //    if (message.Author.IsBot || message.Author.IsWebhook)
-        //        return;
+            var channel = message.Channel as SocketGuildChannel;
+            var curGuild = channel.Guild;
+            RadioSettings settings = await radioSettingsService.GetRadioSettingsAsync(curGuild.Id);
 
-        //    if (message.Channel.Id != Model.Data.Channels.Radio.RadioInitChannelId)
-        //        return;
+            if (!settings.IsEnabled)
+                return;
 
-        //    await message.DeleteAsync();
-        //    var msg = await message.Channel.SendMessageAsync("Для создания рации **напишите** комманду\n/частота");
-        //    Timer dataTimer = new Timer(5000);
-        //    dataTimer.AutoReset = false;
-        //    dataTimer.Elapsed += (sender, e) => { DeleteRndMessage(sender, e, msg); };
-        //    dataTimer.Start();
-        //}
+            if (message.Channel.Id != settings.CommandChannelId)
+                return;
+
+            await message.DeleteAsync();
+            var msg = await message.Channel.SendMessageAsync("Для подключения к частоте **напишите** комманду\n/частота");
+
+            System.Timers.Timer dataTimer = new System.Timers.Timer(5000);
+            dataTimer.AutoReset = false;
+            dataTimer.Elapsed += (sender, e) => { DeleteRndMessage(sender, e, msg); };
+            dataTimer.Start();
+        }
 
         private void DeleteRndMessage(object sender, ElapsedEventArgs e, RestUserMessage msg)
         {
             msg.DeleteAsync().Wait();
         }
 
-        //private async void TimerEvent(object? sender, ElapsedEventArgs e)
-        //{
-        //    if (Model.Data.Tickets.TicketsData.Where(x => x.IsFinished)
-        //                                      .Where(x => DateTime.Now > x.DeleteTime)
-        //                                      .Any())
-
-        //        foreach (var ticket in Model.Data.Tickets.TicketsData.Where(x => x.IsFinished)
-        //                                                         .Where(x => DateTime.Now > x.DeleteTime))
-        //        {
-        //            _client.GetGuild(Model.Data.CurrentGuildId).GetTextChannel(ticket.ChannelId).DeleteAsync();
-        //            Model.Data.Tickets.TicketsData.Remove(ticket);
-        //        }
-
-        //    File.WriteAllTextAsync("Data.json", JsonConvert.SerializeObject(Model.Data)).Wait();
-        //    await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "Update", "Data updated!"));
-        //}
-
-        //private async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after)
-        //{
-        //    if (!Model.Data.Channels.Radio.IsRadioEnabled)
-        //        return;
-
-        //    if (Model.Data.Channels.Radio.ActiveRadios == null)
-        //        return;
-
-        //    if (before.VoiceChannel == null || before.VoiceChannel == after.VoiceChannel)
-        //        return;
-
-        //    if (Model.Data.Channels.Radio.ActiveRadios.Contains(before.VoiceChannel.Id) && before.VoiceChannel.ConnectedUsers.Count == 0)
-        //    {
-        //        Model.Data.Channels.Radio.ActiveRadios.Remove(before.VoiceChannel.Id);
-        //        await before.VoiceChannel.DeleteAsync();
-        //        await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"Частота {before.VoiceChannel.Name} удалена"));
-        //    }
-        //}
-
-        private static bool IsDebug()
+        public static async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after, IRadioSettingsService radioSettingsService, IBaseService<RadioEntity> radioService)
         {
-#if DEBUG
-            return true;
-#else
-            return false;
-#endif
+            if (before.VoiceChannel == null)
+                return;
+
+            if (before.VoiceChannel.ConnectedUsers.Count != 0)
+                return;
+
+            if (before.VoiceChannel == after.VoiceChannel)
+                return;
+
+            var guildUser = user as SocketGuildUser;
+            var curGuild = guildUser.Guild;
+            RadioSettings settings = await radioSettingsService.GetRadioSettingsAsync(curGuild.Id);
+
+            if (before.VoiceChannel.Category.Id != settings.RadiosCategoryId)
+                return;
+
+            if (before.VoiceChannel.Id == settings.CommandChannelId)
+                return;
+
+
+            var activeRadios = radioService.GetAll().Where(x => x.Guild.Id == settings.Guild.Id).ToList();
+            if (activeRadios.Select(x => x.VoiceChannelId).Contains(before.VoiceChannel.Id))
+            {
+                var voiceToDelete = activeRadios.FirstOrDefault(x => x.VoiceChannelId == before.VoiceChannel.Id);
+                await radioService.Delete(voiceToDelete);
+                await before.VoiceChannel.DeleteAsync();
+            }
         }
     }
 }

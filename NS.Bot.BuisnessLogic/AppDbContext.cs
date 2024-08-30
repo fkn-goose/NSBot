@@ -3,6 +3,7 @@ using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
+using NS.Bot.Shared.Entities.Warn;
 
 namespace NS.Bot.BuisnessLogic
 {
@@ -39,6 +40,12 @@ namespace NS.Bot.BuisnessLogic
 
         public DbSet<RadioEntity> Radios { get; set; }
         public DbSet<RadioSettings> RadioSettings { get; set; }
+
+        #endregion
+
+        #region Warn
+
+        public DbSet<WarnEntity> Warns { get; set; }
 
         #endregion
 
