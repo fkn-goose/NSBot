@@ -9,6 +9,7 @@ using static NS2Bot.Extensions.ModalExtensions;
 
 namespace NS.Bot.App.Commands
 {
+    [RequireOwner]
     public class TicketModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly ITicketService _ticketService;

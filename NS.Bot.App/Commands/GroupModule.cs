@@ -46,7 +46,7 @@ namespace NS.Bot.Commands.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
+            CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
             //Создаем или получаем запрошенную группировку на текущем дискорд-сервере
             var requestedGroup = _groupService.GetAll().FirstOrDefault(x => x.Name == groupsEnum);
@@ -71,7 +71,7 @@ namespace NS.Bot.Commands.CommandModules
             else
             {
                 //Создаем или получаем члена сервера
-                guildMember = _guildMemberService.GetByMember(member, CurrentGuild).Result;
+                guildMember = await _guildMemberService.GetByMember(member, CurrentGuild);
                 guildMember ??= await CreateGuildMember(member);
             }
 
@@ -108,7 +108,7 @@ namespace NS.Bot.Commands.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
+            CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
             var member = _memberService.GetAll().FirstOrDefault(x => user.Id == x.DiscordId);
             var guildMember = new GuildMember();
@@ -120,7 +120,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            guildMember = _guildMemberService.GetByMember(member, CurrentGuild).Result;
+            guildMember = await _guildMemberService.GetByMember(member, CurrentGuild);
             if (guildMember == null)
             {
                 guildMember = await CreateGuildMember(member);
@@ -160,7 +160,7 @@ namespace NS.Bot.Commands.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
+            CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
             var requestedGroup = _groupService.GetAll().FirstOrDefault(x => x.Name == groupsEnum);
             if (requestedGroup == null)
@@ -217,7 +217,7 @@ namespace NS.Bot.Commands.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
+            CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
             var group = await _groupService.GetGroupByEnum(groupsEnum, CurrentGuild);
 
             var groupMembers = _guildMemberService.GetAll().Where(x => x.Guild.GuildId == CurrentGuild.GuildId && x.Group.Name == groupsEnum).ToList();
@@ -302,7 +302,7 @@ namespace NS.Bot.Commands.CommandModules
 
             await DeferAsync(ephemeral: true);
 
-            CurrentGuild = _guildService.GetByDiscordId(Context.Guild.Id).Result;
+            CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
             var member = await _memberService.GetAll().FirstOrDefaultAsync(x => x.DiscordId == user.Id);
             if (member == null)

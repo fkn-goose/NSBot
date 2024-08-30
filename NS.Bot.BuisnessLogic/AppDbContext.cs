@@ -2,6 +2,7 @@
 using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
+using NS.Bot.Shared.Entities.Radio;
 
 namespace NS.Bot.BuisnessLogic
 {
@@ -31,6 +32,13 @@ namespace NS.Bot.BuisnessLogic
 
         public DbSet<GuildMember> GuildMembers { get; set; }
         public DbSet<GuildEntity> Guilds { get; set; }
+
+        #endregion
+
+        #region Radio
+
+        public DbSet<RadioEntity> Radios { get; set; }
+        public DbSet<RadioSettings> RadioSettings { get; set; }
 
         #endregion
 
