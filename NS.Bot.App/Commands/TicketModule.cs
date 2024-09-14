@@ -220,7 +220,7 @@ namespace NS.Bot.App.Commands
             var takeTicketButtonMessage = await ticketMenu.SendMessageAsync(embed: newTicketEmbed.Build(), components: takeTicketComponent.Build());
             ticketData.MessageId = takeTicketButtonMessage.Id;
 
-            _ticketService.CreateOrUpdate(ticketData);
+            _ticketService.CreateOrUpdateAsync(ticketData);
             await Context.Guild.GetTextChannel(ticketSettings.TicketLogs)
                 .SendMessageAsync($"{MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username}) создал тикет {MentionUtils.MentionChannel(ticketChannel.Id)} ({Context.Guild.GetChannel(ticketChannel.Id).Name})");
 

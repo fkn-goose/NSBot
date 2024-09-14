@@ -17,19 +17,19 @@ namespace NS.Bot.BuisnessLogic.Services
         public async Task<RadioSettings> GetRadioSettingsAsync(ulong guildEntityId)
         {
             var curGuild = await _guildService.GetByDiscordId(guildEntityId);
-            var radioSettings = GetAll().FirstOrDefault(x=>x.Guild.Id == curGuild.Id);
+            var radioSettings = GetAll().FirstOrDefault(x=>x.RelatedGuild.Id == curGuild.Id);
 
             if (radioSettings == null)
             {
                 radioSettings = new RadioSettings
                 {
-                    Guild = curGuild,
+                    RelatedGuild = curGuild,
                     IsEnabled = false,
                     CommandChannelId = 0,
                     RadiosCategoryId = 0,
                 };
 
-                await CreateOrUpdate(radioSettings);
+                await CreateOrUpdateAsync(radioSettings);
             }
 
             return radioSettings;

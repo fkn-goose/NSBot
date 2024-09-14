@@ -1,4 +1,5 @@
 ﻿using NS.Bot.Shared.Entities.Warn;
+using System.Collections.Generic;
 
 namespace NS.Bot.Shared.Entities
 {
@@ -9,9 +10,7 @@ namespace NS.Bot.Shared.Entities
     {
         public ulong DiscordId { get; set; }
         public ulong? SteamId { get; set; }
-        public WarnEntity FirstWarn { get; set; }
-        public WarnEntity SecondWarn { get; set; }
-        public WarnEntity ThirdWarn { get; set; }
+        public ICollection<WarnEntity> Warns { get; set; }
         public uint TotalWarnCount { get; set; }
     }
 }

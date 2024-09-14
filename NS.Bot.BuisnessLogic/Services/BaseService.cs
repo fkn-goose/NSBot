@@ -21,7 +21,7 @@ namespace NS.Bot.BuisnessLogic.Services
             return entity.Id;
         }
 
-        public async Task<long> CreateOrUpdate(T entity)
+        public async Task<long> CreateOrUpdateAsync(T entity)
         {
             if (entity.Id == 0)
             {

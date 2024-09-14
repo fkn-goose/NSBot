@@ -7,7 +7,7 @@ namespace NS.Bot.Shared.Entities.Radio
         /// <summary>
         /// Сервер дискорда для которого используются настройки
         /// </summary>
-        public GuildEntity Guild { get; set; }
+        public GuildEntity RelatedGuild { get; set; }
 
         /// <summary>
         /// Включение системы раций

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NS.Bot.BuisnessLogic;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NS.Bot.Migrations.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240914192028_warn_entity")]
+    partial class warn_entity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -273,6 +276,9 @@ namespace NS.Bot.Migrations.Migrations
                     b.Property<DateTime>("FromDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("Indefinite")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -284,9 +290,6 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.Property<long?>("IssuedToId")
                         .HasColumnType("bigint");
-
-                    b.Property<bool>("Permanent")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Reason")
                         .HasColumnType("text");

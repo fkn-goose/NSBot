@@ -4,14 +4,16 @@ using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
 using NS.Bot.Shared.Entities.Warn;
+using System;
 
 namespace NS.Bot.BuisnessLogic
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) 
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
             ChangeTracker.LazyLoadingEnabled = false;
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         }
 
         public DbSet<MemberEntity> Members { get; set; }
@@ -46,6 +48,7 @@ namespace NS.Bot.BuisnessLogic
         #region Warn
 
         public DbSet<WarnEntity> Warns { get; set; }
+        public DbSet<WarnSettings> WarnSettings { get; set; }
 
         #endregion
 
@@ -53,8 +56,14 @@ namespace NS.Bot.BuisnessLogic
         {
             modelBuilder.Entity<GroupEntity>(g =>
             {
-                g.HasIndex(u => u.Name)
+                g.HasIndex(u => u.GroupType)
                 .IsUnique();
+            });
+
+            modelBuilder.Entity<MemberEntity>(g =>
+            {
+                g.HasMany(x => x.Warns)
+                .WithOne(x => x.IssuedTo);
             });
         }
     }

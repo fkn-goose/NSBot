@@ -27,7 +27,7 @@ namespace NS.Bot.BuisnessLogic.Services
 
         public async Task<TicketSettings> GetSettingsByGuildId(ulong guildId)
         {
-            return await _db.TicketSettings.FirstOrDefaultAsync(x=>x.Guild.GuildId == guildId);
+            return await _db.TicketSettings.FirstOrDefaultAsync(x=>x.Related.GuildId == guildId);
         }
         
         public async void Update<T>(T entity)

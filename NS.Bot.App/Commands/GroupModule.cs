@@ -1,9 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using NS.Bot.BuisnessLogic.Interfaces;
-using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Enums;
@@ -16,16 +14,13 @@ namespace NS.Bot.Commands.CommandModules
         private readonly IGroupService _groupService;
         private readonly IMemberService _memberService;
         private readonly IGuildService _guildService;
-
         private readonly IGuildMemberService _guildMemberService;
-
         private GuildEntity CurrentGuild;
         public GroupModule(IGroupService groupService, IMemberService memberService, IGuildService guildService, IGuildMemberService guildMemberService)
         {
             _groupService = groupService;
             _memberService = memberService;
             _guildService = guildService;
-
             _guildMemberService = guildMemberService;
         }
 
@@ -49,37 +44,30 @@ namespace NS.Bot.Commands.CommandModules
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
             //Создаем или получаем запрошенную группировку на текущем дискорд-сервере
-            var requestedGroup = _groupService.GetAll().FirstOrDefault(x => x.Name == groupsEnum);
+            var requestedGroup = _groupService.GetAll().FirstOrDefault(x => x.GroupType == groupsEnum);
             if (requestedGroup == null)
             {
                 requestedGroup = new GroupEntity()
                 {
-                    Name = groupsEnum,
+                    GroupType = groupsEnum,
                     Guild = CurrentGuild,
                 };
-                await _groupService.CreateOrUpdate(requestedGroup);
+                await _groupService.CreateOrUpdateAsync(requestedGroup);
             }
 
             //Создаем или получаем данные игрока
-            var member = _memberService.GetAll().FirstOrDefault(x => user.Id == x.DiscordId);
-            var guildMember = new GuildMember();
-            if (member == null)
+            var guildMember = await _guildMemberService.GetByDiscordIdAsync(user.Id, CurrentGuild.GuildId);
+            if(guildMember == null)
             {
-                member = await CreateMember(user.Id);
-                guildMember = await CreateGuildMember(member);
-            }
-            else
-            {
-                //Создаем или получаем члена сервера
-                guildMember = await _guildMemberService.GetByMember(member, CurrentGuild);
-                guildMember ??= await CreateGuildMember(member);
+                var member = await _memberService.GetByDiscordIdAsync(user.Id);
+                member ??= await _memberService.CreateMemberAsync(user.Id, CurrentGuild);
+                guildMember = await _guildMemberService.GetByMemberAsync(member, CurrentGuild);
             }
 
-            var currentGroup = guildMember?.Group;
+            var currentGroup = guildMember.Group;
 
-            if ((currentGroup != null && currentGroup.Name == GroupsEnum.Loner) || currentGroup == null)
+            if ((currentGroup != null && currentGroup.GroupType == GroupsEnum.Loner) || currentGroup == null)
             {
-                //null быть не может, оно пиздит
                 guildMember.Group = requestedGroup;
                 await _guildMemberService.Update(guildMember);
 
@@ -87,7 +75,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            await FollowupAsync($"Игрок принадлежит к группировке {currentGroup.Name.GetDescription()}, сначала необходимо его выписать", ephemeral: true);
+            await FollowupAsync($"Игрок принадлежит к группировке {currentGroup.GroupType.GetDescription()}, сначала необходимо его выписать", ephemeral: true);
             return;
         }
 
@@ -110,26 +98,18 @@ namespace NS.Bot.Commands.CommandModules
 
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
-            var member = _memberService.GetAll().FirstOrDefault(x => user.Id == x.DiscordId);
-            var guildMember = new GuildMember();
-            if (member == null)
-            {
-                member = await CreateMember(user.Id);
-                guildMember = await CreateGuildMember(member);
-                await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
-                return;
-            }
-
-            guildMember = await _guildMemberService.GetByMember(member, CurrentGuild);
+            var guildMember = await _guildMemberService.GetByDiscordIdAsync(user.Id, CurrentGuild.GuildId);
             if (guildMember == null)
             {
-                guildMember = await CreateGuildMember(member);
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
+                var member = await _memberService.GetByDiscordIdAsync(user.Id);
+                if(member == null)
+                    await _memberService.CreateMemberAsync(user.Id, CurrentGuild);
                 return;
             }
 
             var currentGroup = guildMember.Group;
-            if (currentGroup.Name == GroupsEnum.Loner)
+            if (currentGroup.GroupType == GroupsEnum.Loner)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 return;
@@ -162,39 +142,31 @@ namespace NS.Bot.Commands.CommandModules
 
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
-            var requestedGroup = _groupService.GetAll().FirstOrDefault(x => x.Name == groupsEnum);
+            var requestedGroup = _groupService.GetAll().FirstOrDefault(x => x.GroupType == groupsEnum);
             if (requestedGroup == null)
             {
                 await FollowupAsync("В группировке нет ни одного игрока, впишите игрока в группировку, чтобы сделать его лидером", ephemeral: true);
                 return;
             }
 
-            var member = _memberService.GetAll().FirstOrDefault(x => user.Id == x.DiscordId);
-            var guildMember = new GuildMember();
-            if (member == null)
-            {
-                member = await CreateMember(user.Id);
-                guildMember = await CreateGuildMember(member);
-                await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
-                return;
-            }
-
-            guildMember = await _guildMemberService.GetByMember(member, CurrentGuild);
+            var guildMember = await _guildMemberService.GetByDiscordIdAsync(user.Id, CurrentGuild.GuildId);
             if (guildMember == null)
             {
-                guildMember = await CreateGuildMember(member);
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
+                var member = await _memberService.GetByDiscordIdAsync(user.Id);
+                if (member == null)
+                    await _memberService.CreateMemberAsync(user.Id, CurrentGuild);
                 return;
             }
 
             var currentGroup = guildMember.Group;
-            if (currentGroup == null || currentGroup.Name == GroupsEnum.Loner)
+            if (currentGroup == null || currentGroup.GroupType == GroupsEnum.Loner)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 return;
             }
 
-            if (currentGroup.Name != groupsEnum)
+            if (currentGroup.GroupType != groupsEnum)
             {
                 await FollowupAsync("Игрок не состоит в данной группировке", ephemeral: true);
                 return;
@@ -220,7 +192,7 @@ namespace NS.Bot.Commands.CommandModules
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
             var group = await _groupService.GetGroupByEnum(groupsEnum, CurrentGuild);
 
-            var groupMembers = _guildMemberService.GetAll().Where(x => x.Guild.GuildId == CurrentGuild.GuildId && x.Group.Name == groupsEnum).ToList();
+            var groupMembers = _guildMemberService.GetAll().Where(x => x.Guild.GuildId == CurrentGuild.GuildId && x.Group.GroupType == groupsEnum).ToList();
             if (groupMembers == null || !groupMembers.Any())
             {
                 await FollowupAsync($"В группировке \"{groupsEnum.GetDescription()}\" нет игроков", ephemeral: true);
@@ -254,7 +226,7 @@ namespace NS.Bot.Commands.CommandModules
             }
 
             var groupMembers = _guildMemberService.GetAll().Where(x => x.Guild.GuildId == CurrentGuild.GuildId)
-                                                           .Where(x => x.Group.Name == groupsEnum)
+                                                           .Where(x => x.Group.GroupType == groupsEnum)
                                                            .Where(x => x.Member != null)
                                                            .ToList();
 
@@ -304,44 +276,17 @@ namespace NS.Bot.Commands.CommandModules
 
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
-            var member = await _memberService.GetAll().FirstOrDefaultAsync(x => x.DiscordId == user.Id);
-            if (member == null)
+            var guildMember = await _guildMemberService.GetByDiscordIdAsync(user.Id, CurrentGuild.GuildId);
+            if (guildMember == null)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
+                var member = await _memberService.GetByDiscordIdAsync(user.Id);
+                if (member == null)
+                    await _memberService.CreateMemberAsync(user.Id, CurrentGuild);
                 return;
             }
 
-            var guildMember = await _guildMemberService.GetByMember(member, CurrentGuild);
-            if (guildMember == null || guildMember.Group == null || guildMember.Group.Name == GroupsEnum.Loner)
-            {
-                await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
-                return;
-            }
-
-            await FollowupAsync($"Игрок состоит в группировке \"{guildMember.Group.Name.GetDescription()}\"", ephemeral: true);
-        }
-
-        private async Task<MemberEntity> CreateMember(ulong userId)
-        {
-            var member = new MemberEntity()
-            {
-                DiscordId = userId
-            };
-            await _memberService.CreateOrUpdate(member);
-
-            return member;
-        }
-
-        private async Task<GuildMember> CreateGuildMember(MemberEntity member)
-        {
-            var guildMember = new GuildMember()
-            {
-                Guild = CurrentGuild,
-                Member = member
-            };
-            await _guildMemberService.CreateOrUpdate(guildMember);
-
-            return guildMember;
+            await FollowupAsync($"Игрок состоит в группировке \"{guildMember.Group.GroupType.GetDescription()}\"", ephemeral: true);
         }
     }
 }

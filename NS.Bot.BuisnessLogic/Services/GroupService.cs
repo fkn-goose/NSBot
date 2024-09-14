@@ -17,7 +17,7 @@ namespace NS.Bot.BuisnessLogic.Services
 
         public async Task<GroupEntity> GetGroupByEnum(GroupsEnum groupEnum, GuildEntity currentGuild)
         {
-            return await GetAll().FirstOrDefaultAsync(x => x.Name == groupEnum && x.Guild.GuildId == currentGuild.GuildId);
+            return await GetAll().FirstOrDefaultAsync(x => x.GroupType == groupEnum && x.Guild.GuildId == currentGuild.GuildId);
         }
     }
 }

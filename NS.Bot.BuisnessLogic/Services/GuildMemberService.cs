@@ -12,7 +12,7 @@ namespace NS.Bot.BuisnessLogic.Services
     {
         public GuildMemberService(AppDbContext db) : base(db) { }
 
-        public async Task<GuildMember> GetByMember(MemberEntity member, GuildEntity guild)
+        public async Task<GuildMember> GetByMemberAsync(MemberEntity member, GuildEntity guild)
         {
             return await base.GetAll().FirstOrDefaultAsync(x => x.Member.Id == member.Id && x.Guild.GuildId == guild.GuildId);
         }
@@ -21,6 +21,12 @@ namespace NS.Bot.BuisnessLogic.Services
         new public IQueryable<GuildMember> GetAll()
         {
             return _db.GuildMembers.Include(x => x.Member).Include(x => x.Guild).Include(x => x.Group);
+        }
+
+        public async Task<GuildMember> GetByDiscordIdAsync(ulong discordId, ulong guildId)
+        {
+            var result = await GetAll().FirstOrDefaultAsync(x=>x.Member.DiscordId == discordId && x.Guild.GuildId == guildId);
+            return result;
         }
     }
 }

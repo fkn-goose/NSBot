@@ -26,15 +26,15 @@ namespace NS.Bot.App.Commands
             }
             await DeferAsync(ephemeral: true);
 
-            await _guildService.CreateOrUpdate(curGuild = new GuildEntity
+            await _guildService.CreateOrUpdateAsync(curGuild = new GuildEntity
             {
                 GuildId = Context.Guild.Id,
                 Name = Context.Guild.Name,
             });
 
-            await _groupService.CreateOrUpdate(new GroupEntity
+            await _groupService.CreateOrUpdateAsync(new GroupEntity
             {
-                Name = Shared.Enums.GroupsEnum.Loner,
+                GroupType = Shared.Enums.GroupsEnum.Loner,
                 Guild = curGuild
             });
 

@@ -1,4 +1,6 @@
-﻿namespace NS.Bot.Shared.Entities.Warn
+﻿using System;
+
+namespace NS.Bot.Shared.Entities.Warn
 {
     /// <summary>
     /// Предупреждение
@@ -21,18 +23,38 @@
         public string Reason { get; set; }
 
         /// <summary>
-        /// Длительность(в секундах)
+        /// Когда выдан
+        /// </summary>
+        public DateTime FromDate { get; set; }
+
+        /// <summary>
+        /// Когда заканчивается
+        /// </summary>
+        public DateTime ToDate { get; set; }
+
+        /// <summary>
+        /// Длительность в секундах
         /// </summary>
         public uint Duration { get; set; }
 
         /// <summary>
         /// Бессрочный
         /// </summary>
-        public bool Indefinite { get; set; }
+        public bool Permanent { get; set; } = false;
 
         /// <summary>
         /// Устный
         /// </summary>
-        public bool IsVerbal { get; set; }
+        public bool IsVerbal { get; set; } = false;
+
+        /// <summary>
+        /// Выговор
+        /// </summary>
+        public bool IsRebuke { get; set; } = false;
+
+        /// <summary>
+        /// Активен
+        /// </summary>
+        public bool IsActive { get; set; } = true;
     }
 }

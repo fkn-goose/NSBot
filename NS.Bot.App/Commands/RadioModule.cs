@@ -120,7 +120,7 @@ namespace NS.Bot.App.Commands
             }
 
             var category = ((SocketTextChannel)Context.Channel).Category;
-            var curRadios = _radioEntityService.GetAll().Where(x => x.Guild.Id == settings.Guild.Id).ToList();
+            var curRadios = _radioEntityService.GetAll().Where(x => x.Guild.Id == settings.RelatedGuild.Id).ToList();
 
             var radioExists = curRadios.FirstOrDefault(x => string.Equals(x.VoiceName, freq + " mhz"));
             if (radioExists != null)
@@ -137,9 +137,9 @@ namespace NS.Bot.App.Commands
                 {
                     VoiceChannelId = newVoice.Id,
                     VoiceName = newVoice.Name,
-                    Guild = settings.Guild,
+                    Guild = settings.RelatedGuild,
                 };
-                await _radioEntityService.CreateOrUpdate(radio);
+                await _radioEntityService.CreateOrUpdateAsync(radio);
 
                 await ((SocketGuildUser)Context.User).ModifyAsync(x => x.ChannelId = newVoice.Id);
                 //await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "VoiceC", $"{Context.User.Username} создал новую частоту {freq}"));

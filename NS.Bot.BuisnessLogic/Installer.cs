@@ -5,6 +5,7 @@ using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
+using NS.Bot.Shared.Entities.Warn;
 
 namespace NS.Bot.BuisnessLogic
 {
@@ -20,6 +21,10 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<IBaseService<GroupEntity>,  BaseService<GroupEntity>>();
             container.AddScoped<IBaseService<RadioEntity>, BaseService<RadioEntity>>();
             container.AddScoped<IBaseService<RadioSettings>, BaseService<RadioSettings>>();
+            container.AddScoped<IBaseService<WarnEntity>, BaseService<WarnEntity>>();
+            container.AddScoped<IBaseService<WarnSettings>, BaseService<WarnSettings>>();
+            container.AddScoped<IBaseService<WarnEntity>, BaseService<WarnEntity>>();
+            //container.AddScoped<IBaseService<>, BaseService<>>();
 
             #endregion
 
@@ -29,6 +34,8 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<IGroupService, GroupService>();
             container.AddScoped<IMemberService, MemberService>();
             container.AddScoped<IRadioSettingsService, RadioSettingsService>();
+            container.AddScoped<IWarnSettingsService, WarnSettingsService>();
+            container.AddScoped<IWarnService, WarnService>();
         }
     }
 }

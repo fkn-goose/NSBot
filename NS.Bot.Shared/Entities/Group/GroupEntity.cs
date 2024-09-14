@@ -10,9 +10,9 @@ namespace NS.Bot.Shared.Entities.Group
     public class GroupEntity : BaseEntity
     {
         /// <summary>
-        /// Название группировки
+        /// Группировка
         /// </summary>
-        public GroupsEnum Name { get; set; }
+        public GroupsEnum GroupType { get; set; }
 
         /// <summary>
         /// Сервер к которому принадлежит группировка

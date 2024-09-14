@@ -11,7 +11,9 @@ using NS.Bot.App.Handlers;
 using NS.Bot.App.Logging;
 using NS.Bot.BuisnessLogic;
 using NS.Bot.BuisnessLogic.Interfaces;
+using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
+using NS.Bot.Shared.Entities.Warn;
 using System.Timers;
 
 namespace NS.Bot.App
@@ -19,7 +21,8 @@ namespace NS.Bot.App
     public class Program
     {
         private DiscordSocketClient _client;
-
+        private static List<SocketGuild> guilds = new List<SocketGuild>();
+        private static List<WarnSettings> warnSettings = new List<WarnSettings>();
         public static Task Main(string[] args) => new Program().MainAsync(args);
 
         public async Task MainAsync(string[] args)
@@ -87,17 +90,21 @@ namespace NS.Bot.App
             var radioSettingsService = provider.GetService<IRadioSettingsService>();
             var radioService = provider.GetService<IBaseService<RadioEntity>>();
 
+            var warnService = provider.GetService<IWarnService>();
+            var warnSettingsService = provider.GetService<IBaseService<WarnSettings>>();
+            var guildService = provider.GetService<IBaseService<GuildEntity>>();
+
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
             //Model.logger = new ConsoleLogger();
             //Model.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
 
-            //Timer dataTimer = new Timer(60000);
-            //dataTimer.Elapsed += TimerEvent;
-            //dataTimer.AutoReset = true;
-            //dataTimer.Start();
-            //await Model.logger.LogAsync(new LogMessage(LogSeverity.Info, "RefreshDataEvent", "Save timer started"));
+            warnSettings = warnSettingsService.GetAll().ToList();
 
+            var dataTimer = new System.Timers.Timer(300000);
+            dataTimer.Elapsed += (sender, e) => WarnRemover(sender, e, warnService, guildService);
+            dataTimer.AutoReset = true;
+            dataTimer.Start();
 
             _client.MessageReceived += (message) => RndMessagesDelete(message, radioSettingsService);
             _client.UserVoiceStateUpdated += (user, before, after) => VoiceRemover(user, before, after, radioSettingsService, radioService);
@@ -116,7 +123,7 @@ namespace NS.Bot.App
             await Task.Delay(-1);
         }
 
-        public async Task RndMessagesDelete(SocketMessage message, IRadioSettingsService radioSettingsService)
+        private async Task RndMessagesDelete(SocketMessage message, IRadioSettingsService radioSettingsService)
         {
             if (message.Author.IsBot || message.Author.IsWebhook)
                 return;
@@ -145,7 +152,7 @@ namespace NS.Bot.App
             msg.DeleteAsync().Wait();
         }
 
-        public static async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after, IRadioSettingsService radioSettingsService, IBaseService<RadioEntity> radioService)
+        private static async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after, IRadioSettingsService radioSettingsService, IBaseService<RadioEntity> radioService)
         {
             if (before.VoiceChannel == null)
                 return;
@@ -167,12 +174,53 @@ namespace NS.Bot.App
                 return;
 
 
-            var activeRadios = radioService.GetAll().Where(x => x.Guild.Id == settings.Guild.Id).ToList();
+            var activeRadios = radioService.GetAll().Where(x => x.Guild.Id == settings.RelatedGuild.Id).ToList();
             if (activeRadios.Select(x => x.VoiceChannelId).Contains(before.VoiceChannel.Id))
             {
                 var voiceToDelete = activeRadios.FirstOrDefault(x => x.VoiceChannelId == before.VoiceChannel.Id);
                 await radioService.Delete(voiceToDelete);
                 await before.VoiceChannel.DeleteAsync();
+            }
+        }
+
+        private void WarnRemover(object? sender, ElapsedEventArgs e, IBaseService<WarnEntity> warnService, IBaseService<GuildEntity> guildService)
+        {
+            var expiredWarns = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.Permanent && x.ToDate < DateTime.UtcNow).ToList();
+            if (!expiredWarns.Any())
+                return;
+
+            foreach (var guild in guildService.GetAll().ToList())
+            {
+                var discrodGuild = _client.GetGuild(guild.GuildId);
+                guilds.Add(discrodGuild);
+            }
+
+            if (!guilds.Any())
+                return;
+
+            foreach (var warn in expiredWarns)
+            {
+                warn.IsActive = false;
+                warnService.Update(warn);
+                var warnCount = warn.IssuedTo.Warns.Count;
+
+                foreach(var guild in guilds)
+                {
+                    var usr = guild.GetUser(warn.IssuedTo.DiscordId);
+                    if (usr == null)
+                        continue;
+
+                    var currentSettings = warnSettings.FirstOrDefault(x=>x.RelatedGuild.GuildId == guild.Id);
+                    if (currentSettings == null)
+                        continue;
+
+                    if (warnCount == 1)
+                        usr.RemoveRoleAsync(currentSettings.FirstWarnRoleId);
+                    else if (warnCount == 2)
+                        usr.RemoveRoleAsync(currentSettings.SecondWarnRoleId);
+                    else if (warnCount == 3)
+                        usr.RemoveRoleAsync(currentSettings.ThirdWarnRoleId);
+                }
             }
         }
     }

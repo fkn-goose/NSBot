@@ -4,7 +4,7 @@ namespace NS.Bot.Shared.Entities
 {
     public class TicketSettings : BaseEntity
     {
-        public GuildEntity Guild { get; set; }
+        public GuildEntity Related { get; set; }
 
         #region Helper
         /// <summary>
