@@ -40,12 +40,17 @@ namespace NS.Bot.Shared.Entities.Warn
         /// <summary>
         /// Бессрочный
         /// </summary>
-        public bool Permanent { get; set; } = false;
+        public bool IsPermanent { get; set; } = false;
 
         /// <summary>
         /// Устный
         /// </summary>
         public bool IsVerbal { get; set; } = false;
+
+        /// <summary>
+        /// Ридонли
+        /// </summary>
+        public bool IsReadOnly { get; set; } = false;
 
         /// <summary>
         /// Выговор
@@ -56,5 +61,10 @@ namespace NS.Bot.Shared.Entities.Warn
         /// Активен
         /// </summary>
         public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// ID сообщения с предупреждением
+        /// </summary>
+        public ulong MessageId {  get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NS.Bot.BuisnessLogic;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NS.Bot.Migrations.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240915085233_warn_RO")]
+    partial class warn_RO
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,7 +49,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("GuildId");
 
-                    b.ToTable("Groups", (string)null);
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Guild.GuildEntity", b =>
@@ -65,7 +68,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Guilds", (string)null);
+                    b.ToTable("Guilds");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Guild.GuildMember", b =>
@@ -93,7 +96,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("MemberId");
 
-                    b.ToTable("GuildMembers", (string)null);
+                    b.ToTable("GuildMembers");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.MemberEntity", b =>
@@ -115,7 +118,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Members", (string)null);
+                    b.ToTable("Members");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Radio.RadioEntity", b =>
@@ -139,7 +142,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("GuildId");
 
-                    b.ToTable("Radios", (string)null);
+                    b.ToTable("Radios");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Radio.RadioSettings", b =>
@@ -166,7 +169,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("RelatedGuildId");
 
-                    b.ToTable("RadioSettings", (string)null);
+                    b.ToTable("RadioSettings");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.TicketEntity", b =>
@@ -199,7 +202,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("GuildId");
 
-                    b.ToTable("Tickets", (string)null);
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.TicketSettings", b =>
@@ -256,7 +259,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("RelatedId");
 
-                    b.ToTable("TicketSettings", (string)null);
+                    b.ToTable("TicketSettings");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Warn.WarnEntity", b =>
@@ -309,7 +312,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("ResponsibleId");
 
-                    b.ToTable("Warns", (string)null);
+                    b.ToTable("Warns");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Warn.WarnSettings", b =>
@@ -345,7 +348,7 @@ namespace NS.Bot.Migrations.Migrations
 
                     b.HasIndex("RelatedGuildId");
 
-                    b.ToTable("WarnSettings", (string)null);
+                    b.ToTable("WarnSettings");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Group.GroupEntity", b =>

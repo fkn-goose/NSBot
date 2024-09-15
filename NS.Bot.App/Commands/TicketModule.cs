@@ -248,7 +248,7 @@ namespace NS.Bot.App.Commands
             }
 
             var ticketChannel = Context.Guild.GetTextChannel(ticket.ChannelId);
-            var ticketMessage = ticketChannel.GetMessageAsync(ticket.MessageId).Result as SocketMessageComponent;
+            var ticketMessage = (await ticketChannel.GetMessageAsync(ticket.MessageId)) as SocketMessageComponent;
 
             if(ticketMessage == null)
             {

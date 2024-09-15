@@ -40,7 +40,7 @@ namespace NS.Bot.App.Commands
             settings.RadiosCategoryId = category.Id;
             settings.IsEnabled = true;
 
-            await _radioSetttingsService.Update(settings);
+            await _radioSetttingsService.UpdateAsync(settings);
             RadioSettings[Context.Guild.Id] = settings;
 
             await Context.Channel.SendMessageAsync("Для создания или подключения к частоте **напишите** команду /частота");
@@ -74,7 +74,7 @@ namespace NS.Bot.App.Commands
             settings.CommandChannelId = 0;
             settings.IsEnabled = false;
 
-            await _radioSetttingsService.Update(settings);
+            await _radioSetttingsService.UpdateAsync(settings);
             await FollowupAsync("Создание частот отключено", ephemeral: true);
         }
 

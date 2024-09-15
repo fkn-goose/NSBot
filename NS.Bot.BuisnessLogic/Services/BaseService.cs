@@ -14,7 +14,7 @@ namespace NS.Bot.BuisnessLogic.Services
             _db = db;
         }
 
-        public async Task<long> Update(T entity)
+        public async Task<long> UpdateAsync(T entity)
         {
             _db.Set<T>().Update(entity);
             await _db.SaveChangesAsync();
@@ -29,7 +29,7 @@ namespace NS.Bot.BuisnessLogic.Services
                 await _db.SaveChangesAsync();
             }
             else
-                await Update(entity);
+                await UpdateAsync(entity);
 
             return entity.Id;
         }

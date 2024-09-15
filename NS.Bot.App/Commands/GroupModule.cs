@@ -69,7 +69,7 @@ namespace NS.Bot.Commands.CommandModules
             if ((currentGroup != null && currentGroup.GroupType == GroupsEnum.Loner) || currentGroup == null)
             {
                 guildMember.Group = requestedGroup;
-                await _guildMemberService.Update(guildMember);
+                await _guildMemberService.UpdateAsync(guildMember);
 
                 await FollowupAsync($"Игрок вписан в группировку {groupsEnum.GetDescription()}", ephemeral: true);
                 return;
@@ -118,7 +118,7 @@ namespace NS.Bot.Commands.CommandModules
             var lonerGroup = await _groupService.GetGroupByEnum(GroupsEnum.Loner, CurrentGuild);
 
             guildMember.Group = lonerGroup;
-            await _groupService.Update(currentGroup);
+            await _groupService.UpdateAsync(currentGroup);
 
             await FollowupAsync($"Игрок успешно выписан из групппировки {group.GetDescription()}", ephemeral: true);
         }
@@ -173,7 +173,7 @@ namespace NS.Bot.Commands.CommandModules
             }
 
             currentGroup.Leader = guildMember.Id;
-            await _groupService.Update(currentGroup);
+            await _groupService.UpdateAsync(currentGroup);
             await FollowupAsync($"Игрок успешно установлен как лидер группировки {groupsEnum.GetDescription()}", ephemeral: true);
         }
 
@@ -203,12 +203,12 @@ namespace NS.Bot.Commands.CommandModules
             foreach (var groupMember in groupMembers)
             {
                 groupMember.Group = lonerGroup;
-                await _guildMemberService.Update(groupMember);
+                await _guildMemberService.UpdateAsync(groupMember);
             }
 
             group.Leader = null;
 
-            await _groupService.Update(group);
+            await _groupService.UpdateAsync(group);
             await FollowupAsync($"Группировка {groupsEnum.GetDescription()} расформирована", ephemeral: true);
         }
 
