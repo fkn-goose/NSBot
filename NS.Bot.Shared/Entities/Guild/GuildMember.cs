@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using NS.Bot.Shared.Entities.Group;
+using NS.Bot.Shared.Enums;
 
 namespace NS.Bot.Shared.Entities.Guild
 {
@@ -11,16 +12,19 @@ namespace NS.Bot.Shared.Entities.Guild
         /// <summary>
         /// Сервер участника
         /// </summary>
-        public virtual GuildEntity Guild { get; set; }
+        public GuildEntity Guild { get; set; }
 
         /// <summary>
         /// Группировка участника
         /// </summary>
-        public virtual GroupEntity Group { get; set; }
+        public GroupEntity Group { get; set; }
 
         /// <summary>
         /// Общие данные участника
         /// </summary>
-        public virtual MemberEntity Member { get; set; }
+        public MemberEntity Member { get; set; }
+
+        public RoleEnum Role { get; set; } = RoleEnum.Player;
     }
 }
+ 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NS.Bot.BuisnessLogic;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NS.Bot.Migrations.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240915145645_steam_string")]
+    partial class steam_string
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,7 +74,10 @@ namespace NS.Bot.Migrations.Migrations
             modelBuilder.Entity("NS.Bot.Shared.Entities.Guild.GuildMember", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<long?>("GroupId")
                         .HasColumnType("bigint");
@@ -82,9 +88,6 @@ namespace NS.Bot.Migrations.Migrations
                     b.Property<long?>("MemberId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GroupId");
@@ -94,63 +97,6 @@ namespace NS.Bot.Migrations.Migrations
                     b.HasIndex("MemberId");
 
                     b.ToTable("GuildMembers");
-                });
-
-            modelBuilder.Entity("NS.Bot.Shared.Entities.Guild.GuildRoles", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("AdminListMessageChannelId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("AdminListMessageId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("ChiefAdminDeputyRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("ChiefAdminRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("ChiefEventmasterRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("CuratorRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("EventmasterRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("HelperRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("JuniorCuratorRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("JuniorEventmasterRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("PlayerRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<decimal>("RPAdminRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<long?>("RelatedGuildId")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("SeniorCuratorRoleId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RelatedGuildId");
-
-                    b.ToTable("GuildRoles");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.MemberEntity", b =>
@@ -424,12 +370,6 @@ namespace NS.Bot.Migrations.Migrations
                         .WithMany()
                         .HasForeignKey("GuildId");
 
-                    b.HasOne("NS.Bot.Shared.Entities.Group.GroupEntity", null)
-                        .WithOne("Curator")
-                        .HasForeignKey("NS.Bot.Shared.Entities.Guild.GuildMember", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("NS.Bot.Shared.Entities.MemberEntity", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId");
@@ -439,15 +379,6 @@ namespace NS.Bot.Migrations.Migrations
                     b.Navigation("Guild");
 
                     b.Navigation("Member");
-                });
-
-            modelBuilder.Entity("NS.Bot.Shared.Entities.Guild.GuildRoles", b =>
-                {
-                    b.HasOne("NS.Bot.Shared.Entities.Guild.GuildEntity", "RelatedGuild")
-                        .WithMany()
-                        .HasForeignKey("RelatedGuildId");
-
-                    b.Navigation("RelatedGuild");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.Radio.RadioEntity", b =>
@@ -508,11 +439,6 @@ namespace NS.Bot.Migrations.Migrations
                         .HasForeignKey("RelatedGuildId");
 
                     b.Navigation("RelatedGuild");
-                });
-
-            modelBuilder.Entity("NS.Bot.Shared.Entities.Group.GroupEntity", b =>
-                {
-                    b.Navigation("Curator");
                 });
 
             modelBuilder.Entity("NS.Bot.Shared.Entities.MemberEntity", b =>

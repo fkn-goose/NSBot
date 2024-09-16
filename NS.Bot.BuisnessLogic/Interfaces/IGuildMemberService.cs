@@ -14,7 +14,6 @@ namespace NS.Bot.BuisnessLogic.Interfaces
         /// <param name="guild">Экземпляр текущего сервера</param>
         /// <returns>Участник сервера</returns>
         Task<GuildMember> GetByMemberAsync(MemberEntity member, GuildEntity guild);
-        new IQueryable<GuildMember> GetAll();
 
         /// <summary>
         /// Поиск участника сервера

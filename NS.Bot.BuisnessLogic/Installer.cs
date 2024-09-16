@@ -13,6 +13,8 @@ namespace NS.Bot.BuisnessLogic
     {
         public static void AddBuisnessServices(this IServiceCollection container)
         {
+            container.AddScoped<ILogToFileService, LogToFileService>();
+
             #region BaseCrud
 
             container.AddScoped<IBaseService<GuildEntity>, BaseService<GuildEntity>>();
@@ -24,6 +26,7 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<IBaseService<WarnEntity>, BaseService<WarnEntity>>();
             container.AddScoped<IBaseService<WarnSettings>, BaseService<WarnSettings>>();
             container.AddScoped<IBaseService<WarnEntity>, BaseService<WarnEntity>>();
+            container.AddScoped<IBaseService<GuildRoles>, BaseService<GuildRoles>>();
             //container.AddScoped<IBaseService<>, BaseService<>>();
 
             #endregion

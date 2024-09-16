@@ -13,6 +13,6 @@ namespace NS.Bot.BuisnessLogic.Interfaces
         /// <param name="groupEnum">Название группировки</param>
         /// <param name="currentGuild">Сервер группировки</param>
         /// <returns>Группировка</returns>
-        Task<GroupEntity> GetGroupByEnum(GroupsEnum groupEnum, GuildEntity currentGuild);
+        Task<GroupEntity> GetGroupByEnum(GroupEnum groupEnum, GuildEntity currentGuild);
     }
 }

@@ -12,7 +12,7 @@ namespace NS.Bot.Shared.Entities.Group
         /// <summary>
         /// Группировка
         /// </summary>
-        public GroupsEnum GroupType { get; set; }
+        public GroupEnum GroupType { get; set; }
 
         /// <summary>
         /// Сервер к которому принадлежит группировка
@@ -22,6 +22,11 @@ namespace NS.Bot.Shared.Entities.Group
         /// <summary>
         /// Лидер группировки
         /// </summary>
-        public long? Leader { get; set; }
+        public long? Leader { get; set; } 
+
+        /// <summary>
+        /// Куратор группировки
+        /// </summary>
+        public GuildMember Curator { get; set; }
     }
 }

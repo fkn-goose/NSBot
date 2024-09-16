@@ -17,12 +17,6 @@ namespace NS.Bot.BuisnessLogic.Services
             return await base.GetAll().FirstOrDefaultAsync(x => x.Member.Id == member.Id && x.Guild.GuildId == guild.GuildId);
         }
 
-        //Я блять не знаю почему, но если не перезаписывать метод с инклюдом, то он не включает Member`ов никогда. Даже если отключить lazy
-        new public IQueryable<GuildMember> GetAll()
-        {
-            return _db.GuildMembers.Include(x => x.Member).Include(x => x.Guild).Include(x => x.Group);
-        }
-
         public async Task<GuildMember> GetByDiscordIdAsync(ulong discordId, ulong guildId)
         {
             var result = await GetAll().FirstOrDefaultAsync(x=>x.Member.DiscordId == discordId && x.Guild.GuildId == guildId);

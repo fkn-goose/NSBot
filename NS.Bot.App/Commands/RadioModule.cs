@@ -1,10 +1,8 @@
 ﻿using Discord.Interactions;
-using Discord.Rest;
 using Discord.WebSocket;
 using NS.Bot.BuisnessLogic.Interfaces;
 using NS.Bot.Shared.Entities.Radio;
 using System.Text.RegularExpressions;
-using System.Timers;
 
 namespace NS.Bot.App.Commands
 {
@@ -19,32 +17,6 @@ namespace NS.Bot.App.Commands
         {
             _radioSetttingsService = radioSettingsService;
             _radioEntityService = radioEntityService;
-        }
-
-        [SlashCommand("startradio", "Инициализация радио канала")]
-        [RequireOwner]
-        public async Task InitRadioChannel()
-        {
-            await DeferAsync(ephemeral: true);
-            var settings = new RadioSettings();
-
-            if (RadioSettings.TryGetValue(Context.Guild.Id, out settings) && settings.IsEnabled)
-            {
-                await FollowupAsync("Рации уже включены", ephemeral: true);
-                return;
-            }
-
-            settings = await _radioSetttingsService.GetRadioSettingsAsync(Context.Guild.Id);
-            var category = ((SocketTextChannel)Context.Channel).Category;
-            settings.CommandChannelId = Context.Channel.Id;
-            settings.RadiosCategoryId = category.Id;
-            settings.IsEnabled = true;
-
-            await _radioSetttingsService.UpdateAsync(settings);
-            RadioSettings[Context.Guild.Id] = settings;
-
-            await Context.Channel.SendMessageAsync("Для создания или подключения к частоте **напишите** команду /частота");
-            await FollowupAsync("Канал выбран как создание частот", ephemeral: true);
         }
 
         [SlashCommand("stopradio", "Отлючение радио канала")]

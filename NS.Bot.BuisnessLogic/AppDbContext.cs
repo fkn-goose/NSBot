@@ -35,6 +35,7 @@ namespace NS.Bot.BuisnessLogic
 
         public DbSet<GuildMember> GuildMembers { get; set; }
         public DbSet<GuildEntity> Guilds { get; set; }
+        public DbSet<GuildRoles> GuildRoles { get; set; }
 
         #endregion
 
@@ -58,6 +59,10 @@ namespace NS.Bot.BuisnessLogic
             {
                 g.HasIndex(u => u.GroupType)
                 .IsUnique();
+
+                g.HasOne(u => u.Curator)
+                .WithOne()
+                .HasForeignKey<GuildMember>(x => x.Id);
             });
 
             modelBuilder.Entity<MemberEntity>(g =>

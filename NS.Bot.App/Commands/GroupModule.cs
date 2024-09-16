@@ -25,7 +25,7 @@ namespace NS.Bot.Commands.CommandModules
         }
 
         [SlashCommand("вписать", "Вписать игрока в группировку")]
-        public async Task AddToGroup([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum, [Summary(name: "Пользователь", description: "Пользователь")] IUser user)
+        public async Task AddToGroup([Summary(name: "Группировка", description: "Название группировки")] GroupEnum groupsEnum, [Summary(name: "Пользователь", description: "Пользователь")] IUser user)
         {
             if (user.IsBot)
             {
@@ -33,7 +33,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            if (groupsEnum == GroupsEnum.Loner)
+            if (groupsEnum == GroupEnum.Loner)
             {
                 await RespondAsync("Для выписки из группировки используйте комманду /removegroupmember", ephemeral: true);
                 return;
@@ -66,7 +66,7 @@ namespace NS.Bot.Commands.CommandModules
 
             var currentGroup = guildMember.Group;
 
-            if ((currentGroup != null && currentGroup.GroupType == GroupsEnum.Loner) || currentGroup == null)
+            if ((currentGroup != null && currentGroup.GroupType == GroupEnum.Loner) || currentGroup == null)
             {
                 guildMember.Group = requestedGroup;
                 await _guildMemberService.UpdateAsync(guildMember);
@@ -80,7 +80,7 @@ namespace NS.Bot.Commands.CommandModules
         }
 
         [SlashCommand("выписать", "Выписать игрока из группировки")]
-        public async Task RemoveFromGroup([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum group, [Summary(name: "Пользователь", description: "Пользователь")] IUser user)
+        public async Task RemoveFromGroup([Summary(name: "Группировка", description: "Название группировки")] GroupEnum group, [Summary(name: "Пользователь", description: "Пользователь")] IUser user)
         {
             if (user.IsBot)
             {
@@ -88,7 +88,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            if (group == GroupsEnum.Loner)
+            if (group == GroupEnum.Loner)
             {
                 await RespondAsync("Невозможно выписать игрока из одиночек.", ephemeral: true);
                 return;
@@ -109,13 +109,13 @@ namespace NS.Bot.Commands.CommandModules
             }
 
             var currentGroup = guildMember.Group;
-            if (currentGroup.GroupType == GroupsEnum.Loner)
+            if (currentGroup.GroupType == GroupEnum.Loner)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 return;
             }
 
-            var lonerGroup = await _groupService.GetGroupByEnum(GroupsEnum.Loner, CurrentGuild);
+            var lonerGroup = await _groupService.GetGroupByEnum(GroupEnum.Loner, CurrentGuild);
 
             guildMember.Group = lonerGroup;
             await _groupService.UpdateAsync(currentGroup);
@@ -124,7 +124,7 @@ namespace NS.Bot.Commands.CommandModules
         }
 
         [SlashCommand("лидер", "Установить лидера группировки")]
-        public async Task SetLeader([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum, [Summary(name: "Лидер", description: "Пользователь")] IUser user)
+        public async Task SetLeader([Summary(name: "Группировка", description: "Название группировки")] GroupEnum groupsEnum, [Summary(name: "Лидер", description: "Пользователь")] IUser user)
         {
             if (user.IsBot)
             {
@@ -132,7 +132,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            if (groupsEnum == GroupsEnum.Loner)
+            if (groupsEnum == GroupEnum.Loner)
             {
                 await RespondAsync("Нельзя установить лидера группировки \"Одиночки\"", ephemeral: true);
                 return;
@@ -160,7 +160,7 @@ namespace NS.Bot.Commands.CommandModules
             }
 
             var currentGroup = guildMember.Group;
-            if (currentGroup == null || currentGroup.GroupType == GroupsEnum.Loner)
+            if (currentGroup == null || currentGroup.GroupType == GroupEnum.Loner)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 return;
@@ -179,9 +179,9 @@ namespace NS.Bot.Commands.CommandModules
 
         [SlashCommand("расформ", "Расформировать группировку")]
         [RequireUserPermission(GuildPermission.Administrator)]
-        public async Task DisbandGroup([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum)
+        public async Task DisbandGroup([Summary(name: "Группировка", description: "Название группировки")] GroupEnum groupsEnum)
         {
-            if(groupsEnum == GroupsEnum.Loner)
+            if(groupsEnum == GroupEnum.Loner)
             {
                 await RespondAsync("Нельзя расформировать одиночек!", ephemeral: true);
                 return;
@@ -199,7 +199,7 @@ namespace NS.Bot.Commands.CommandModules
                 return;
             }
 
-            var lonerGroup = await _groupService.GetGroupByEnum(GroupsEnum.Loner, CurrentGuild);
+            var lonerGroup = await _groupService.GetGroupByEnum(GroupEnum.Loner, CurrentGuild);
             foreach (var groupMember in groupMembers)
             {
                 groupMember.Group = lonerGroup;
@@ -213,7 +213,7 @@ namespace NS.Bot.Commands.CommandModules
         }
 
         [SlashCommand("состав", "Состав группировки")]
-        public async Task GetGroupMembers([Summary(name: "Группировка", description: "Название группировки")] GroupsEnum groupsEnum)
+        public async Task GetGroupMembers([Summary(name: "Группировка", description: "Название группировки")] GroupEnum groupsEnum)
         {
             await DeferAsync(ephemeral: false);
 

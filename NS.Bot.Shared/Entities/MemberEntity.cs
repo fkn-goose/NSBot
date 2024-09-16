@@ -9,7 +9,7 @@ namespace NS.Bot.Shared.Entities
     public class MemberEntity : BaseEntity
     {
         public ulong DiscordId { get; set; }
-        public ulong? SteamId { get; set; }
+        public string? SteamId { get; set; }
         public ICollection<WarnEntity> Warns { get; set; }
         public uint TotalWarnCount { get; set; }
     }

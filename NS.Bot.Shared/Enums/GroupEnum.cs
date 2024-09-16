@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace NS.Bot.Shared.Enums
 {
-    public enum GroupsEnum
+    public enum GroupEnum
     {
         [ChoiceDisplay("Одиночка")]
         [Description("Одиночка")]
@@ -29,8 +29,8 @@ namespace NS.Bot.Shared.Enums
         [ChoiceDisplay("Монолит")]
         [Description("Монолит")]
         Monolith,
-        [ChoiceDisplay("Альфа бобики")]
-        [Description("Альфа бобики")]
+        [ChoiceDisplay("Альфа псы")]
+        [Description("Альфа псы")]
         Alphadogs,
         [ChoiceDisplay("Сотники")]
         [Description("Сотники")]
@@ -58,6 +58,9 @@ namespace NS.Bot.Shared.Enums
         ClearSky,
         [ChoiceDisplay("Бандиты")]
         [Description("Бандиты")]
-        Bandits
+        Bandits,
+        [ChoiceDisplay("Наёмники")]
+        [Description("Наёмники")]
+        Mercenaries
     }
 }
