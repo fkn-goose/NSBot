@@ -11,7 +11,7 @@ namespace NS.Bot.BuisnessLogic.Services
     {
         private Task BaseLog(LogType logType, string message)
         {
-            var fileName = "Log_" + DateTime.Now.ToShortDateString();
+            var fileName = "Log_" + DateTime.Now.ToString("dd.MM.yyyy");
             using (StreamWriter str = File.AppendText($"Logs\\{fileName}.log"))
             {
                 str.WriteLine(string.Format("[{0}] [{1}] | {2}", logType.GetDescription(), DateTime.Now, message));

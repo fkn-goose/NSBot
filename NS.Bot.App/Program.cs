@@ -98,7 +98,7 @@ namespace NS.Bot.App
 
             warnSettings = warnSettingsService.GetAll().ToList();
 
-            var dataTimer = new System.Timers.Timer(30000);
+            var dataTimer = new System.Timers.Timer(300000);
             dataTimer.Elapsed += (sender, e) => WarnRemover(sender, e, warnService, guildService);
             dataTimer.AutoReset = true;
             dataTimer.Start();

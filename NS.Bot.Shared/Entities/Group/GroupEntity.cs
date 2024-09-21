@@ -28,6 +28,6 @@ namespace NS.Bot.Shared.Entities.Group
         /// Куратор группировки
         /// </summary>
         public GuildMember Curator { get; set; }
-        public long CuratorId { get; set; }
+        public long? CuratorId { get; set; }
     }
 }

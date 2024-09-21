@@ -126,7 +126,8 @@ namespace NS.Bot.App.Commands
                 return;
             }
 
-            var admins = _guildMemberService.GetAll().Where(x => x.Role != RoleEnum.Player).ToList();
+            var admins = _guildMemberService.GetAll().Where(x => x.Role != RoleEnum.Player)
+                                                     .Where(x => x.Guild.Id == currentGuild.Id).ToList();
             var embed = AdminListEmbed(admins, rolesList);
 
             var msg = await Context.Channel.SendMessageAsync(embed: embed);
@@ -169,7 +170,9 @@ namespace NS.Bot.App.Commands
             var chiefEven = Context.Guild.GetRole(rolesList.ChiefEventmasterRoleId);
 
             var discordAdmins = Context.Guild.Users.Where(x => x.Roles.Contains(chief) || x.Roles.Contains(deputyChief) || x.Roles.Contains(rpAdmin) || x.Roles.Contains(seniorCurator) || x.Roles.Contains(curator) || x.Roles.Contains(juniorCurator) || x.Roles.Contains(helper) || x.Roles.Contains(juniorEvent) || x.Roles.Contains(even) || x.Roles.Contains(chiefEven)).ToList();
-            var admins = _guildMemberService.GetAll().Where(x => discordAdmins.Select(x => x.Id).Contains(x.Member.DiscordId)).ToList();
+            var admins = _guildMemberService.GetAll()
+                .Where(x => x.Guild.Id == currentGuild.Id)
+                .Where(x => discordAdmins.Select(x => x.Id).Contains(x.Member.DiscordId)).ToList();
             var oldAdmins = _guildMemberService.GetAll().Where(x => x.Role != RoleEnum.Player).ToList();
 
             foreach (var oldAdmin in oldAdmins)
@@ -194,6 +197,7 @@ namespace NS.Bot.App.Commands
 
                 await channel.ModifyMessageAsync(rolesList.AdminListMessageId, msg => { msg.Embeds = new Embed[] { newmsg }; });
             }
+            await FollowupAsync("Сообщение обновлено", ephemeral: true);
         }
 
         [SlashCommand("куратор_гп", "Назначить администратора куратором группировки")]
@@ -238,16 +242,16 @@ namespace NS.Bot.App.Commands
 
         private Embed AdminListEmbed(List<GuildMember> admins, GuildRoles roles)
         {
-            var chiefList = string.Empty;
-            var deputyChiefList = string.Empty;
-            var rpAdminList = string.Empty;
-            var seniorCuratorList = string.Empty;
-            var curatorList = string.Empty;
-            var juniorCuratorList = string.Empty;
-            var helperList = string.Empty;
-            var juniorEventList = string.Empty;
-            var eventList = string.Empty;
-            var chiefEventList = string.Empty;
+            string chiefList = string.Empty;
+            string deputyChiefList = string.Empty;
+            string rpAdminList = string.Empty;
+            string seniorCuratorList = string.Empty;
+            string curatorList = string.Empty;
+            string juniorCuratorList = string.Empty;
+            string helperList = string.Empty;
+            string juniorEventList = string.Empty;
+            string eventList = string.Empty;
+            string chiefEventList = string.Empty;
 
             //Ну да, вопросы будут?
             foreach (var admin in admins)
@@ -258,48 +262,70 @@ namespace NS.Bot.App.Commands
                         helperList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.JuniorCurator:
-                        juniorCuratorList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        juniorCuratorList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.Curator:
-                        curatorList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        curatorList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.SeniorCurator:
-                        seniorCuratorList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        seniorCuratorList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.RPAdmin:
-                        rpAdminList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        rpAdminList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.ChiefAdminDeputy:
-                        deputyChiefList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        deputyChiefList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.ChiefAdmin:
-                        chiefList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        chiefList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.JuniorEventmaster:
-                        juniorEventList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        juniorEventList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.Eventmaster:
-                        eventList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        eventList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                     case RoleEnum.ChiefEventmaster:
-                        chiefEventList += string.Format("{0} - {1}", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
+                        chiefEventList += string.Format("{0} - {1}\n", MentionUtils.MentionUser(admin.Member.DiscordId), admin.Member.SteamId);
                         break;
                 }
             }
 
             EmbedBuilder adminlist = new EmbedBuilder()
-                .WithTitle("Список администрации")
-                .AddField(MentionUtils.MentionRole(roles.ChiefAdminRoleId), chiefList)
-                .AddField(MentionUtils.MentionRole(roles.ChiefAdminDeputyRoleId), deputyChiefList)
-                .AddField(MentionUtils.MentionRole(roles.RPAdminRoleId), rpAdminList)
-                .AddField(MentionUtils.MentionRole(roles.SeniorCuratorRoleId), seniorCuratorList)
-                .AddField(MentionUtils.MentionRole(roles.CuratorRoleId), curatorList)
-                .AddField(MentionUtils.MentionRole(roles.JuniorCuratorRoleId), juniorCuratorList)
-                .AddField(MentionUtils.MentionRole(roles.HelperRoleId), helperList)
-                .AddField(MentionUtils.MentionRole(roles.ChiefEventmasterRoleId), chiefEventList)
-                .AddField(MentionUtils.MentionRole(roles.EventmasterRoleId), eventList)
-                .AddField(MentionUtils.MentionRole(roles.JuniorEventmasterRoleId), juniorEventList)
-                .WithFooter(new EmbedFooterBuilder().WithText($"Последнее обновление {DateTime.Now.ToString()}"));
+                .WithTitle("Список администрации");
+
+            if (!string.IsNullOrEmpty(chiefList))
+                adminlist.AddField("Главный администратор", chiefList);
+
+            if (!string.IsNullOrEmpty(deputyChiefList))
+                adminlist.AddField("Заместитель главного администратора", deputyChiefList);
+
+            if (!string.IsNullOrEmpty(rpAdminList))
+                adminlist.AddField("РП-Администратор", rpAdminList);
+
+            if (!string.IsNullOrEmpty(seniorCuratorList))
+                adminlist.AddField("Старший куратор", seniorCuratorList);
+
+            if (!string.IsNullOrEmpty(curatorList))
+                adminlist.AddField("Куратор", curatorList);
+
+            if (!string.IsNullOrEmpty(juniorCuratorList))
+                adminlist.AddField("Младший куратор", juniorCuratorList);
+
+            if (!string.IsNullOrEmpty(helperList))
+                adminlist.AddField("Хелпер", helperList);
+
+            if (!string.IsNullOrEmpty(chiefEventList))
+                adminlist.AddField("Главный ивентолог", chiefEventList);
+
+            if (!string.IsNullOrEmpty(eventList))
+                adminlist.AddField("Ивентолог", eventList);
+
+            if (!string.IsNullOrEmpty(juniorEventList))
+                adminlist.AddField("Младший ивентолог", juniorEventList);
+
+            adminlist.WithFooter(new EmbedFooterBuilder().WithText($"Последнее обновление {DateTime.Now.ToString()}"));
+            adminlist.WithColor(Color.Green);
 
             return adminlist.Build();
         }
