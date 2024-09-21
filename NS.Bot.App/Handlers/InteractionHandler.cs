@@ -62,9 +62,9 @@ namespace NS.Bot.App.Handlers
         private Task SlashCommandExecuted(SlashCommandInfo info, IInteractionContext context, IResult result)
         {
             if (result.IsSuccess)
-                _logToFileService.Info(string.Format("{0}({1}) успешно использовал {2}", context.User.Username, context.User.Id, info.Name));
+                _logToFileService.Info(string.Format("{0}({1}) успешно использовал слеш-комманду {2}", context.User.Username, context.User.Id, info.Name));
             else
-                _logToFileService.Error(string.Format("{0}({1}) ошибка при использовании {2}. Ошибка - {3}. Причина - {4}", context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
+                _logToFileService.Error(string.Format("{0}({1}) ошибка при использовании слеш-комманды {2}. Ошибка - {3}. Причина - {4}", context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
             return Task.CompletedTask;
         }
 
@@ -73,7 +73,7 @@ namespace NS.Bot.App.Handlers
             if(interaction is SocketSlashCommand)
             {
                 var slash = interaction as SocketSlashCommand;
-                _logToFileService.Info(string.Format("{0} | {1}({2}) использовал {3}", (interaction.Channel as SocketGuildChannel).Guild.Name, slash.User.Username, slash.User.Id, slash.CommandName));
+                await _logToFileService.Info(string.Format("{0} | {1}({2}) использовал слеш-комманду {3}", (interaction.Channel as SocketGuildChannel).Guild.Name, slash.User.Username, slash.User.Id, slash.CommandName));
             }
 
             try

@@ -1,40 +1,33 @@
 ﻿using NS.Bot.BuisnessLogic.Interfaces;
+using NS.Bot.Shared.Enums;
+using NS.Bot.Shared.Extensions;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NS.Bot.BuisnessLogic.Services
 {
     public class LogToFileService : ILogToFileService
     {
-        private async Task BaseLog(string logType, string message)
+        private Task BaseLog(LogType logType, string message)
         {
             var fileName = "Log_" + DateTime.Now.ToShortDateString();
-            var currentLogFile = File.Open($"Logs\\{fileName}.log", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            using (StreamWriter str = File.AppendText($"Logs\\{fileName}.log"))
+            {
+                str.WriteLine(string.Format("[{0}] [{1}] | {2}", logType.GetDescription(), DateTime.Now, message));
+            }
 
-            byte[] buffer = new byte[currentLogFile.Length];
-            var log = currentLogFile.ReadAsync(buffer, 0, buffer.Length);
-
-            string content = Encoding.UTF8.GetString(buffer);
-            content += string.Format("[{0}] [{1}] | {2}\n", logType, DateTime.Now, message);
-
-            buffer = Encoding.UTF8.GetBytes(content.ToString());
-
-            await currentLogFile.WriteAsync(buffer, 0, buffer.Length);
-            currentLogFile.Close();
-
-            //Какая-то хуйня с переносом строк
+            return Task.CompletedTask;
         }
 
         public async Task Error(string message)
         {
-            await BaseLog("Error", message);
+            await BaseLog(LogType.Error, message);
         }
 
         public async Task Info(string message)
         {
-            await BaseLog("Info", message);
+            await BaseLog(LogType.Info, message);
         }
     }
 }
