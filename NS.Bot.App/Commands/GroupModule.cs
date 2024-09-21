@@ -249,11 +249,17 @@ namespace NS.Bot.Commands.CommandModules
 
             var groupEmbed = new EmbedBuilder()
                 .WithTitle($"Группировка {GetValueExtension.GetDescription(groupsEnum)}");
-            SocketGuildUser groupLeaderDiscrodUser;
+            
+            if(group.Curator != null)
+            {
+                var groupCuratorDiscrodUser = Context.Guild.GetUser(group.Curator.Member.DiscordId);
+                groupEmbed.AddField("Куратор группировки", string.Format("{0} ({1})", MentionUtils.MentionUser(groupCuratorDiscrodUser.Id), groupCuratorDiscrodUser.Username));
+            }
+
             if (group.Leader != null)
             {
                 var groupLeaderGuildMember = await _guildMemberService.Get(group.Leader.Value);
-                groupLeaderDiscrodUser = Context.Guild.GetUser(groupLeaderGuildMember.Member.DiscordId);
+                var groupLeaderDiscrodUser = Context.Guild.GetUser(groupLeaderGuildMember.Member.DiscordId);
                 groupEmbed.AddField("Лидер группировки", string.Format("{0} ({1})", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username));
             }
 

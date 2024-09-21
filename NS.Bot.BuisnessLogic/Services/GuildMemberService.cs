@@ -14,7 +14,18 @@ namespace NS.Bot.BuisnessLogic.Services
 
         public async Task<GuildMember> GetByMemberAsync(MemberEntity member, GuildEntity guild)
         {
-            return await base.GetAll().FirstOrDefaultAsync(x => x.Member.Id == member.Id && x.Guild.GuildId == guild.GuildId);
+            var guildMember = await GetAll().FirstOrDefaultAsync(x => x.Member.Id == member.Id && x.Guild.GuildId == guild.GuildId);
+            if(guildMember == null)
+            {
+                guildMember = new GuildMember()
+                {
+                    Guild = guild,
+                    Member = member
+                };
+                await CreateOrUpdateAsync(guildMember);
+            }
+
+            return guildMember;
         }
 
         public async Task<GuildMember> GetByDiscordIdAsync(ulong discordId, ulong guildId)

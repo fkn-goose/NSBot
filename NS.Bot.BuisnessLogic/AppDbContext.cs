@@ -62,7 +62,7 @@ namespace NS.Bot.BuisnessLogic
 
                 g.HasOne(u => u.Curator)
                 .WithOne()
-                .HasForeignKey<GuildMember>(x => x.Id);
+                .HasForeignKey<GroupEntity>(x => x.CuratorId);
             });
 
             modelBuilder.Entity<MemberEntity>(g =>
@@ -70,6 +70,8 @@ namespace NS.Bot.BuisnessLogic
                 g.HasMany(x => x.Warns)
                 .WithOne(x => x.IssuedTo);
             });
+
+            modelBuilder.Entity<GuildMember>().Navigation(x => x.Member).AutoInclude();
         }
     }
 }

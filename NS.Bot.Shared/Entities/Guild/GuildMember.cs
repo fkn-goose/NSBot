@@ -22,6 +22,7 @@ namespace NS.Bot.Shared.Entities.Guild
         /// <summary>
         /// Общие данные участника
         /// </summary>
+        public long MemberId { get; set; }
         public MemberEntity Member { get; set; }
 
         public RoleEnum Role { get; set; } = RoleEnum.Player;

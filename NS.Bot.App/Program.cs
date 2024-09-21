@@ -96,9 +96,6 @@ namespace NS.Bot.App
 
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
-            //Model.logger = new ConsoleLogger();
-            //Model.radioname = new Regex("\\d\\d\\d\\.\\d\\d\\d");
-
             warnSettings = warnSettingsService.GetAll().ToList();
 
             var dataTimer = new System.Timers.Timer(30000);

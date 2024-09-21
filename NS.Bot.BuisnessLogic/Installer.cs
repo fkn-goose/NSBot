@@ -13,7 +13,7 @@ namespace NS.Bot.BuisnessLogic
     {
         public static void AddBuisnessServices(this IServiceCollection container)
         {
-            container.AddScoped<ILogToFileService, LogToFileService>();
+            container.AddSingleton<ILogToFileService, LogToFileService>();
 
             #region BaseCrud
 

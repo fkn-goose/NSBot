@@ -35,42 +35,42 @@ namespace NS.Bot.App.Handlers
         private Task ModalCommandExecuted(ModalCommandInfo info, IInteractionContext context, IResult result)
         {
             if (result.IsSuccess)
-                _logToFileService.Info(string.Format("{0}({1}) успешно использовал {2}", context.User.Username, context.User.Id, info.Name));
+                _logToFileService.Info(string.Format("{0} | {1}({2}) успешно завершил модальную-комманду {3}", context.Guild.Name, context.User.Username, context.User.Id, info.Name));
             else
-                _logToFileService.Error(string.Format("{0}({1}) ошибка при использовании {2}. Ошибка - {3}. Причина - {4}", context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
+                _logToFileService.Error(string.Format("{0} | {1}({2}) ошибка при использовании модальной-комманды {3}. Ошибка - {4}. Причина - {5}", context.Guild.Name, context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
             return Task.CompletedTask;
         }
 
         private Task ComponentCommandExecuted(ComponentCommandInfo info, IInteractionContext context, IResult result)
         {
             if (result.IsSuccess)
-                _logToFileService.Info(string.Format("{0}({1}) успешно использовал {2}", context.User.Username, context.User.Id, info.Name));
+                _logToFileService.Info(string.Format("{0} | {1}({2}) успешно использовал {3}", context.Guild.Name, context.User.Username, context.User.Id, info.Name));
             else
-                _logToFileService.Error(string.Format("{0}({1}) ошибка при использовании {2}. Ошибка - {3}. Причина - {4}", context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
+                _logToFileService.Error(string.Format("{0} | {1}({2}) ошибка при использовании {3}. Ошибка - {4}. Причина - {5}", context.Guild.Name, context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
             return Task.CompletedTask;
         }
 
         private Task ContextCommandExecuted(ContextCommandInfo info, IInteractionContext context, IResult result)
         {
             if (result.IsSuccess)
-                _logToFileService.Info(string.Format("{0}({1}) успешно использовал {2}", context.User.Username, context.User.Id, info.Name));
+                _logToFileService.Info(string.Format("{0} | {1}({2}) успешно использовал контекст-комманду {3} {4}", context.Guild.Name, context.User.Username, context.User.Id, info.Name, string.Join(' ', info.Parameters)));
             else
-                _logToFileService.Error(string.Format("{0}({1}) ошибка при использовании {2}. Ошибка - {3}. Причина - {4}", context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
+                _logToFileService.Error(string.Format("{0} | {1}({2}) ошибка при использовании контекст-комманды {3}. Ошибка - {4}. Причина - {5}", context.Guild.Name, context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
             return Task.CompletedTask;
         }
 
         private Task SlashCommandExecuted(SlashCommandInfo info, IInteractionContext context, IResult result)
         {
             if (result.IsSuccess)
-                _logToFileService.Info(string.Format("{0}({1}) успешно использовал слеш-комманду {2}", context.User.Username, context.User.Id, info.Name));
+                _logToFileService.Info(string.Format("{0} | {1}({2}) успешно использовал слеш-комманду {3} {4}", context.Guild.Name, context.User.Username, context.User.Id, info.Name, string.Join(' ', info.Parameters)));
             else
-                _logToFileService.Error(string.Format("{0}({1}) ошибка при использовании слеш-комманды {2}. Ошибка - {3}. Причина - {4}", context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
+                _logToFileService.Error(string.Format("{0} | {1}({2}) ошибка при использовании слеш-комманды {3}. Ошибка - {4}. Причина - {5}", context.Guild.Name, context.User.Username, context.User.Id, info.Name, result.Error.Value.ToString() ?? "Неизвестна", result.ErrorReason));
             return Task.CompletedTask;
         }
 
         private async Task HandleIntercation(SocketInteraction interaction)
         {
-            if(interaction is SocketSlashCommand)
+            if (interaction is SocketSlashCommand)
             {
                 var slash = interaction as SocketSlashCommand;
                 await _logToFileService.Info(string.Format("{0} | {1}({2}) использовал слеш-комманду {3}", (interaction.Channel as SocketGuildChannel).Guild.Name, slash.User.Username, slash.User.Id, slash.CommandName));
