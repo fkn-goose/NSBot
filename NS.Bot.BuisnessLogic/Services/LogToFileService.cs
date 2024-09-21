@@ -14,7 +14,7 @@ namespace NS.Bot.BuisnessLogic.Services
             var fileName = "Log_" + DateTime.Now.ToString("dd.MM.yyyy");
             using (StreamWriter str = File.AppendText($"Logs\\{fileName}.log"))
             {
-                str.WriteLine(string.Format("[{0}] [{1}] | {2}", logType.GetDescription(), DateTime.Now, message));
+                str.WriteLine(string.Format("[{0}] [{1}] | {2}", logType.GetDescription(), DateTime.Now.ToString("HH:mm:ss dd.MM.yyyy"), message));
             }
 
             return Task.CompletedTask;

@@ -93,18 +93,19 @@ namespace NS.Bot.App
             var warnService = provider.GetService<IWarnService>();
             var warnSettingsService = provider.GetService<IBaseService<WarnSettings>>();
             var guildService = provider.GetService<IBaseService<GuildEntity>>();
+            var logger = provider.GetService<ILogToFileService>();
 
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
             warnSettings = warnSettingsService.GetAll().ToList();
 
             var dataTimer = new System.Timers.Timer(300000);
-            dataTimer.Elapsed += (sender, e) => WarnRemover(sender, e, warnService, guildService);
+            dataTimer.Elapsed += (sender, e) => WarnRemover(sender, e, warnService, guildService, logger);
             dataTimer.AutoReset = true;
             dataTimer.Start();
 
-            _client.MessageReceived += (message) => RndMessagesDelete(message, radioSettingsService);
-            _client.UserVoiceStateUpdated += (user, before, after) => VoiceRemover(user, before, after, radioSettingsService, radioService);
+            _client.MessageReceived += (message) => RndMessagesDelete(message, radioSettingsService, logger);
+            _client.UserVoiceStateUpdated += (user, before, after) => VoiceRemover(user, before, after, radioSettingsService, radioService, logger);
 
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
             commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().LogAsync(_);
@@ -120,7 +121,7 @@ namespace NS.Bot.App
             await Task.Delay(-1);
         }
 
-        private async Task RndMessagesDelete(SocketMessage message, IRadioSettingsService radioSettingsService)
+        private async Task RndMessagesDelete(SocketMessage message, IRadioSettingsService radioSettingsService, ILogToFileService logger)
         {
             if (message.Author.IsBot || message.Author.IsWebhook)
                 return;
@@ -138,6 +139,7 @@ namespace NS.Bot.App
             await message.DeleteAsync();
             var msg = await message.Channel.SendMessageAsync("Для подключения к частоте **напишите** комманду\n/частота");
 
+            await logger.Info($"[RNDMSGRADIO_REMOVE] | Автоматическое удаление неправильного сообщения в создании частоты");
             System.Timers.Timer dataTimer = new System.Timers.Timer(5000);
             dataTimer.AutoReset = false;
             dataTimer.Elapsed += (sender, e) => { DeleteRndMessage(sender, e, msg); };
@@ -149,7 +151,7 @@ namespace NS.Bot.App
             msg.DeleteAsync().Wait();
         }
 
-        private static async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after, IRadioSettingsService radioSettingsService, IBaseService<RadioEntity> radioService)
+        private static async Task VoiceRemover(SocketUser user, SocketVoiceState before, SocketVoiceState after, IRadioSettingsService radioSettingsService, IBaseService<RadioEntity> radioService, ILogToFileService logger)
         {
             if (before.VoiceChannel == null)
                 return;
@@ -175,18 +177,23 @@ namespace NS.Bot.App
             if (activeRadios.Select(x => x.VoiceChannelId).Contains(before.VoiceChannel.Id))
             {
                 var voiceToDelete = activeRadios.FirstOrDefault(x => x.VoiceChannelId == before.VoiceChannel.Id);
+                await logger.Info($"[RADIO_REMOVE] | Автоматическое удаление голосового канала {before.VoiceChannel.Name}");
                 await radioService.Delete(voiceToDelete);
                 await before.VoiceChannel.DeleteAsync();
             }
         }
 
-        private async void WarnRemover(object? sender, ElapsedEventArgs e, IBaseService<WarnEntity> warnService, IBaseService<GuildEntity> guildService)
+        private async Task WarnRemover(object? sender, ElapsedEventArgs e, IBaseService<WarnEntity> warnService, IBaseService<GuildEntity> guildService, ILogToFileService logger)
         {
-            var expiredWarns = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.IsPermanent && !x.IsReadOnly && x.ToDate < DateTime.UtcNow).ToList();
-            var expiredROs = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.IsPermanent && x.IsReadOnly && x.ToDate < DateTime.UtcNow).ToList();
-            if (!expiredWarns.Any() && !expiredROs.Any())
-                return;
+            var expiredWarns = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.IsPermanent && !x.IsReadOnly && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
+            var expiredROs = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.IsPermanent && x.IsReadOnly && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
+            Console.WriteLine(DateTime.UtcNow.ToString());
 
+            if (!expiredWarns.Any() && !expiredROs.Any())
+            {
+                await logger.Info($"[WARN_REMOVE] | Не найдены предупреждения или RO");
+                return;
+            }
             foreach (var guild in guildService.GetAll().ToList())
             {
                 var discrodGuild = _client.GetGuild(guild.GuildId);
@@ -194,44 +201,69 @@ namespace NS.Bot.App
             }
 
             if (!guilds.Any())
+            {
+                await logger.Info($"[WARN_REMOVE] | Не найдены сервера");
                 return;
+            }
 
             foreach (var warn in expiredWarns)
             {
                 warn.IsActive = false;
                 var warnCount = warn.IssuedTo.Warns.Count;
-
                 foreach (var guild in guilds)
                 {
-                    var usr = guild.GetUser(warn.IssuedTo.DiscordId);
-                    if (usr == null)
-                        continue;
-
-                    var currentSettings = warnSettings.FirstOrDefault(x => x.RelatedGuild.GuildId == guild.Id);
-                    if (currentSettings == null)
-                        continue;
-
-                    var chnl = guild.GetTextChannel(currentSettings.WarnChannelId);
-                    if (chnl != null)
+                    if (guild == null)
                     {
-                        var msg = await chnl.GetMessageAsync(warn.MessageId);
-                        var embed = msg.Embeds.First().ToEmbedBuilder();
-                        var removeField = embed.Fields.FirstOrDefault(x => x.Name == "Истекает");
-                        if (removeField != null)
-                        {
-                            embed.Fields.Remove(removeField);
-                            embed.AddField("Истекает", "Срок предупреждения истёк");
-                            embed.WithColor(Color.Green);
-                            await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
-                        }
+                        await logger.Info($"[WARN_REMOVE] | Сервер NULL");
+                        continue;
                     }
-                    if (warnCount == 1)
-                        await usr.RemoveRoleAsync(currentSettings.FirstWarnRoleId);
-                    else if (warnCount == 2)
-                        await usr.RemoveRoleAsync(currentSettings.SecondWarnRoleId);
-                    else if (warnCount == 3)
-                        await usr.RemoveRoleAsync(currentSettings.ThirdWarnRoleId);
-                    warnService.UpdateAsync(warn);
+
+                    try
+                    {
+                        var usr = guild.GetUser(warn.IssuedTo.DiscordId);
+                        if (usr == null)
+                        {
+                            await logger.Info($"[WARN_REMOVE] | User NULL");
+                            continue;
+                        }
+                        var currentSettings = warnSettings.FirstOrDefault(x => x.RelatedGuild.GuildId == guild.Id);
+                        if (currentSettings == null)
+                        {
+                            Console.WriteLine($"[WARN_REMOVE] | Не найдены настройки");
+                            continue;
+                        }
+
+                        var chnl = guild.GetTextChannel(currentSettings.WarnChannelId);
+                        if (chnl != null)
+                        {
+                            var msg = await chnl.GetMessageAsync(warn.MessageId);
+                            if (msg != null)
+                            {
+                                var embed = msg.Embeds.First().ToEmbedBuilder();
+                                var removeField = embed.Fields.FirstOrDefault(x => x.Name == "Истекает");
+                                if (removeField != null)
+                                {
+                                    embed.Fields.Remove(removeField);
+                                    embed.AddField("Истекает", "Срок предупреждения истёк");
+                                    embed.WithColor(Color.Green);
+                                    await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
+                                }
+                            }
+                        }
+
+                        if (warnCount == 1)
+                            await usr.RemoveRoleAsync(currentSettings.FirstWarnRoleId);
+                        else if (warnCount == 2)
+                            await usr.RemoveRoleAsync(currentSettings.SecondWarnRoleId);
+                        else if (warnCount == 3)
+                            await usr.RemoveRoleAsync(currentSettings.ThirdWarnRoleId);
+                        await warnService.UpdateAsync(warn);
+                        await logger.Info($"[WARN_REMOVE] | Снято предупреждение у пользователя {usr.Nickname}");
+                    }
+                    catch (Exception ex)
+                    {
+                        await logger.Error($"[WARN_REMOVE] | {ex.Message}");
+                    }
                 }
             }
 
@@ -242,30 +274,53 @@ namespace NS.Bot.App
 
                 foreach (var guild in guilds)
                 {
-                    var usr = guild.GetUser(warn.IssuedTo.DiscordId);
-                    if (usr == null)
-                        continue;
-
-                    var currentSettings = warnSettings.FirstOrDefault(x => x.RelatedGuild.GuildId == guild.Id);
-                    if (currentSettings == null)
-                        continue;
-
-                    var chnl = guild.GetTextChannel(currentSettings.WarnChannelId);
-                    if (chnl != null)
+                    if (guild == null)
                     {
-                        var msg = await chnl.GetMessageAsync(warn.MessageId);
-                        var embed = msg.Embeds.First().ToEmbedBuilder();
-                        var removeField = embed.Fields.FirstOrDefault(x => x.Name == "Истекает");
-                        if (removeField != null)
-                        {
-                            embed.Fields.Remove(removeField);
-                            embed.AddField("Истекает", "Срок ReadOnly истёк");
-                            embed.WithColor(Color.Green);
-                            await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
-                        }
+                        await logger.Info($"[RO_REMOVE] | Сервер NULL");
+                        continue;
                     }
-                    await usr.RemoveRoleAsync(currentSettings.ReadOnlyRoleId);
-                    warnService.UpdateAsync(warn);
+
+                    try
+                    {
+                        var usr = guild.GetUser(warn.IssuedTo.DiscordId);
+                            if (usr == null)
+                            {
+                                await logger.Info($"[RO_REMOVE] | User NULL");
+                                continue;
+                            }
+
+                        var currentSettings = warnSettings.FirstOrDefault(x => x.RelatedGuild.GuildId == guild.Id);
+                            if (currentSettings == null)
+                            {
+                                Console.WriteLine($"[RO_REMOVE] | Не найдены настройки");
+                                continue;
+                            }
+
+                        var chnl = guild.GetTextChannel(currentSettings.WarnChannelId);
+                        if (chnl != null)
+                        {
+                            var msg = await chnl.GetMessageAsync(warn.MessageId);
+                            if (msg != null)
+                            {
+                                var embed = msg.Embeds.First().ToEmbedBuilder();
+                                var removeField = embed.Fields.FirstOrDefault(x => x.Name == "Истекает");
+                                if (removeField != null)
+                                {
+                                    embed.Fields.Remove(removeField);
+                                    embed.AddField("Истекает", "Срок ReadOnly истёк");
+                                    embed.WithColor(Color.Green);
+                                    await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
+                                }
+                            }
+                        }
+                        await usr.RemoveRoleAsync(currentSettings.ReadOnlyRoleId);
+                        await warnService.UpdateAsync(warn);
+                        await logger.Info($"[RO_REMOVE] | Снято RO у пользователя {usr.Nickname}");
+                    }
+                    catch (Exception ex)
+                    {
+                        await logger.Error($"[RO_REMOVE] | {ex.Message}");
+                    }
                 }
             }
         }

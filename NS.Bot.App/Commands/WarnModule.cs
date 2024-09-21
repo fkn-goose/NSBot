@@ -332,6 +332,8 @@ namespace NS.Bot.App.Commands
                 response += (link + " \n");
             }
 
+            response += string.Format("{0} предупреждений было выдано не на этом сервере");
+
             await FollowupAsync(response, ephemeral: true);
         }
 

@@ -10,11 +10,13 @@ namespace NS.Bot.Shared.Entities.Warn
         /// <summary>
         /// Тот кто выдал
         /// </summary>
+        public long ResponsibleId { get; set; }
         public MemberEntity Responsible { get; set; }
 
         /// <summary>
         /// Тот кому выдали
         /// </summary>
+        public long IssuedToId { get; set; }
         public MemberEntity IssuedTo { get; set; }
 
         /// <summary>

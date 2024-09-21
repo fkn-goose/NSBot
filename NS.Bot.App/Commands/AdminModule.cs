@@ -326,7 +326,7 @@ namespace NS.Bot.App.Commands
             if (!string.IsNullOrEmpty(juniorEventList))
                 adminlist.AddField("Младший ивентолог", juniorEventList);
 
-            adminlist.WithFooter(new EmbedFooterBuilder().WithText($"Последнее обновление {DateTime.Now.ToString()}"));
+            adminlist.WithFooter(new EmbedFooterBuilder().WithText($"Последнее обновление {DateTime.Now.ToString("HH:mm:ss dd.MM.yyyy")}"));
             adminlist.WithColor(Color.Green);
 
             return adminlist.Build();

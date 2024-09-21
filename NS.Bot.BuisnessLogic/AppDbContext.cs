@@ -73,6 +73,7 @@ namespace NS.Bot.BuisnessLogic
 
             modelBuilder.Entity<GuildMember>().Navigation(x => x.Member).AutoInclude();
             modelBuilder.Entity<GroupEntity>().Navigation(x => x.Curator).AutoInclude();
+            modelBuilder.Entity<WarnEntity>().Navigation(x=>x.IssuedTo).AutoInclude();
         }
     }
 }
