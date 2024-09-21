@@ -28,7 +28,7 @@ namespace NS.Bot.App.Commands
             var settings = new RadioSettings();
 
             if (!RadioSettings.TryGetValue(Context.Guild.Id, out settings))
-            {
+            {   
                 settings = await _radioSetttingsService.GetRadioSettingsAsync(Context.Guild.Id);
                 if(settings == null)
                 {
@@ -109,7 +109,7 @@ namespace NS.Bot.App.Commands
                 {
                     VoiceChannelId = newVoice.Id,
                     VoiceName = newVoice.Name,
-                    Guild = settings.RelatedGuild,
+                    GuildId = settings.RelatedGuild.Id,
                 };
                 await _radioEntityService.CreateOrUpdateAsync(radio);
 

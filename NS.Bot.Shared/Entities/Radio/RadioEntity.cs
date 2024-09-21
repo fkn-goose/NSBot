@@ -17,6 +17,7 @@ namespace NS.Bot.Shared.Entities.Radio
         /// <summary>
         /// Сервер, на котором создана рация
         /// </summary>
+        public long GuildId { get; set; }
         public GuildEntity Guild { get; set; }
     }
 }

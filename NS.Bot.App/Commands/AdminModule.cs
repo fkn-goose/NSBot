@@ -56,7 +56,9 @@ namespace NS.Bot.App.Commands
 
             if (rolesList.AdminListMessageId != 0 || rolesList.AdminListMessageChannelId != 0)
             {
-                var admins = _guildMemberService.GetAll().Where(x => x.Role != RoleEnum.Player).ToList();
+                var admins = _guildMemberService.GetAll()
+                    .Where(x => x.Guild.Id == currentGuild.Id)
+                    .Where(x => x.Role != RoleEnum.Player).ToList();
                 var channel = Context.Guild.GetTextChannel(rolesList.AdminListMessageChannelId);
                 var newmsg = AdminListEmbed(admins, rolesList);
 
