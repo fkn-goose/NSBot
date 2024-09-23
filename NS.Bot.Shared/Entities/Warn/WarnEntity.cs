@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NS.Bot.Shared.Enums;
+using System;
 
 namespace NS.Bot.Shared.Entities.Warn
 {
@@ -40,24 +41,14 @@ namespace NS.Bot.Shared.Entities.Warn
         public uint Duration { get; set; }
 
         /// <summary>
+        /// Тип предупреждения
+        /// </summary>
+        public WarnType WarnType { get; set; }
+
+        /// <summary>
         /// Бессрочный
         /// </summary>
         public bool IsPermanent { get; set; } = false;
-
-        /// <summary>
-        /// Устный
-        /// </summary>
-        public bool IsVerbal { get; set; } = false;
-
-        /// <summary>
-        /// Ридонли
-        /// </summary>
-        public bool IsReadOnly { get; set; } = false;
-
-        /// <summary>
-        /// Выговор
-        /// </summary>
-        public bool IsRebuke { get; set; } = false;
 
         /// <summary>
         /// Активен

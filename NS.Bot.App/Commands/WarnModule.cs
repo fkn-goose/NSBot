@@ -8,7 +8,7 @@ using NS.Bot.Shared.Enums;
 
 namespace NS.Bot.App.Commands
 {
-    [Group("предупреждение", "предупреждение")]
+    [Group("предупреждение", "Команды для предупреждений")]
     public class WarnModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly IMemberService _memberService;
@@ -59,6 +59,11 @@ namespace NS.Bot.App.Commands
                 issuedToGuildMember = await _guildMemberService.GetByMemberAsync(member, CurrentGuild);
             }
 
+            if (issuedToGuildMember == null)
+            {
+                await FollowupAsync("Не найден пользователь сервера", ephemeral: true);
+                return;
+            }
 
             var responsibleGuildMember = await _guildMemberService.GetByDiscordIdAsync(Context.User.Id, CurrentGuild.GuildId);
             if (responsibleGuildMember == null)
@@ -74,7 +79,8 @@ namespace NS.Bot.App.Commands
                 IssuedTo = issuedToGuildMember.Member,
                 Reason = reason,
                 FromDate = DateTime.Now,
-                IsPermanent = IsPermanent
+                IsPermanent = IsPermanent,
+                WarnType = type,
             };
 
             DateTime endDate;
@@ -83,14 +89,15 @@ namespace NS.Bot.App.Commands
             switch (type)
             {
                 case WarnType.Verbal:
-                    warn.IsVerbal = true;
                     issuedToGuildMember.Member.TotalWarnCount++;
                     await _memberService.UpdateAsync(issuedToGuildMember.Member);
                     await _warnService.CreateOrUpdateAsync(warn);
-                    var msg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(embed: GetEmbedWarnMessage(warn));
+                    var msg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(text: MentionUtils.MentionUser(user.Id), embed: await GetEmbedWarnMessage(warn));
                     warn.MessageId = msg.Id;
+                    await _warnService.UpdateAsync(warn);
                     await FollowupAsync("Игроку выдано устное предупреждение", ephemeral: true);
                     return;
+                case WarnType.Rebuke:
                 case WarnType.Ordinary:
 
                     if (durationInput == null)
@@ -131,8 +138,43 @@ namespace NS.Bot.App.Commands
                     warn.ToDate = endDate;
                     warn.Duration = durationInSeconds;
 
-                    var activeWarnsCount = issuedToGuildMember.Member.Warns?.Count(w => w.IsActive && !w.IsVerbal && !w.IsReadOnly && !w.IsRebuke && !w.IsPermanent) ?? 0;
+                    var activeWarnsCount = _warnService.GetAll().Where(x => x.IssuedTo.Id == issuedToGuildMember.Member.Id).ToList()?.Count(w => w.IsActive && (w.WarnType == WarnType.Ordinary || w.WarnType == WarnType.Rebuke)) ?? 0;
 
+                    if (type == WarnType.Rebuke)
+                    {
+                        if (activeWarnsCount < 3)
+                        {
+                            switch (activeWarnsCount)
+                            {
+                                case 0:
+                                    await user.AddRoleAsync(settings.FirstRebukeRoleId);
+                                    await FollowupAsync("Игроку выдан первый выговор", ephemeral: true);
+                                    break;
+                                case 1:
+                                    await user.AddRoleAsync(settings.SecondRebukeRoleId);
+                                    await FollowupAsync("Игроку выдан второй выговор", ephemeral: true);
+                                    break;
+                                case 2:
+                                    await user.AddRoleAsync(settings.ThirdRebukeRoleId);
+                                    await FollowupAsync("Игроку выдан третий выговор", ephemeral: true);
+                                    break;
+                                default:
+                                    await FollowupAsync("Ошибка: кол-во выговоров некорректно", ephemeral: true);
+                                    return;
+                            }
+                            issuedToGuildMember.Member.TotalWarnCount++;
+                            await _memberService.UpdateAsync(issuedToGuildMember.Member);
+                            await _warnService.CreateOrUpdateAsync(warn);
+                            var ordinaryMsg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(text: MentionUtils.MentionUser(user.Id), embed: await GetEmbedWarnMessage(warn));
+                            warn.MessageId = ordinaryMsg.Id;
+                            await _warnService.UpdateAsync(warn);
+                        }
+                        else
+                        {
+                            await FollowupAsync("У игрока уже есть три выговора", ephemeral: true);
+                            return;
+                        }
+                    }
                     if (activeWarnsCount < 3)
                     {
                         switch (activeWarnsCount)
@@ -156,7 +198,7 @@ namespace NS.Bot.App.Commands
                         issuedToGuildMember.Member.TotalWarnCount++;
                         await _memberService.UpdateAsync(issuedToGuildMember.Member);
                         await _warnService.CreateOrUpdateAsync(warn);
-                        var ordinaryMsg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(embed: GetEmbedWarnMessage(warn));
+                        var ordinaryMsg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(text: MentionUtils.MentionUser(user.Id), embed: await GetEmbedWarnMessage(warn));
                         warn.MessageId = ordinaryMsg.Id;
                         await _warnService.UpdateAsync(warn);
                     }
@@ -167,7 +209,7 @@ namespace NS.Bot.App.Commands
                     }
                     break;
                 case WarnType.ReadOnly:
-                    var activeROCount = issuedToGuildMember.Member.Warns?.Count(w => w.IsActive && !w.IsVerbal && w.IsReadOnly && !w.IsRebuke && !w.IsPermanent) ?? 0;
+                    var activeROCount = _warnService.GetAll().Where(x => x.IssuedTo.Id == issuedToGuildMember.Member.Id).ToList()?.Count(w => w.IsActive && w.WarnType == WarnType.ReadOnly) ?? 0;
                     if (activeROCount > 0)
                     {
                         await FollowupAsync("У игрока уже есть ReadOnly", ephemeral: true);
@@ -196,12 +238,11 @@ namespace NS.Bot.App.Commands
                             await FollowupAsync("Не указана длительность и/или ед. измерения", ephemeral: true);
                             return;
                     }
-                    warn.IsReadOnly = true;
                     warn.ToDate = endDate;
                     warn.Duration = durationInSeconds;
                     await user.AddRoleAsync(settings.ReadOnlyRoleId);
                     await _warnService.CreateOrUpdateAsync(warn);
-                    var ROMsg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(embed: GetEmbedWarnMessage(warn));
+                    var ROMsg = await Context.Guild.GetTextChannel(settings.WarnChannelId).SendMessageAsync(text: MentionUtils.MentionUser(user.Id), embed: await GetEmbedWarnMessage(warn));
                     warn.MessageId = ROMsg.Id;
                     await FollowupAsync("Игроку выдан ReadOnly", ephemeral: true);
                     await _warnService.UpdateAsync(warn);
@@ -214,7 +255,7 @@ namespace NS.Bot.App.Commands
         {
             if (!(Context.User as SocketGuildUser).GuildPermissions.Administrator)
             {
-                await RespondAsync("Недостаточно прав", ephemeral:true);
+                await RespondAsync("Недостаточно прав", ephemeral: true);
                 return;
             }
             await DeferAsync(ephemeral: true);
@@ -227,8 +268,6 @@ namespace NS.Bot.App.Commands
                 await FollowupAsync("Предупреждение не найдено", ephemeral: true);
                 return;
             }
-
-            warn.IsActive = false;
 
             var guilds = _guildService.GetAll().ToList();
             var dsGuilds = new List<SocketGuild>();
@@ -244,27 +283,57 @@ namespace NS.Bot.App.Commands
                 return;
             }
 
-            foreach (var guild in dsGuilds)
+            var activeMemberWarns = _warnService.GetAll().Where(x => x.IssuedTo.Id == warn.IssuedTo.Id && x.IsActive).ToList();
+            if (activeMemberWarns != null && !activeMemberWarns.Any())
+                return;
+
+            if (warn.IsActive)
             {
-                if (!WarnSettings.TryGetValue(Context.Guild.Id, out WarnSettings settings))
+                foreach (var guild in dsGuilds)
                 {
-                    settings = await _warnSettingsService.GetWarnSettingsAsync(guild.Id);
-                    if (settings == null)
-                        continue;
-                    WarnSettings[Context.Guild.Id] = settings;
-                }
-                if (warn.IsReadOnly)
-                    await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.ReadOnlyRoleId);
-                else
-                {
-                    if (warn.IssuedTo.Warns.Count(w => w.IsActive && !w.IsVerbal && !w.IsReadOnly && !w.IsRebuke && !w.IsPermanent) == 3)
-                        await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.ThirdWarnRoleId);
+                    if (!WarnSettings.TryGetValue(Context.Guild.Id, out WarnSettings settings))
+                    {
+                        settings = await _warnSettingsService.GetWarnSettingsAsync(guild.Id);
+                        if (settings == null)
+                            continue;
+                        WarnSettings[Context.Guild.Id] = settings;
+                    }
 
-                    if (warn.IssuedTo.Warns.Count(w => w.IsActive && !w.IsVerbal && !w.IsReadOnly && !w.IsRebuke && !w.IsPermanent) == 2)
-                        await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.SecondWarnRoleId);
+                    switch (warn.WarnType)
+                    {
+                        case WarnType.ReadOnly:
+                            activeMemberWarns = activeMemberWarns?.Where(x => x.WarnType == WarnType.Rebuke).ToList() ?? new List<WarnEntity>();
 
-                    if (warn.IssuedTo.Warns.Count(w => w.IsActive && !w.IsVerbal && !w.IsReadOnly && !w.IsRebuke && !w.IsPermanent) == 1)
-                        await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.FirstWarnRoleId);
+                            await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.ReadOnlyRoleId);
+
+                            break;
+
+                        case WarnType.Rebuke:
+                            activeMemberWarns = activeMemberWarns?.Where(x => x.WarnType == WarnType.Rebuke).ToList() ?? new List<WarnEntity>();
+
+                            if (activeMemberWarns.Count == 3)
+                                await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.ThirdRebukeRoleId);
+                            else if (activeMemberWarns.Count == 2)
+                                await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.SecondRebukeRoleId);
+                            else if (activeMemberWarns.Count == 1)
+                                await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.FirstRebukeRoleId);
+
+                            break;
+
+                        case WarnType.Ordinary:
+                            activeMemberWarns = activeMemberWarns?.Where(x => x.WarnType == WarnType.Ordinary).ToList() ?? new List<WarnEntity>();
+
+                            if (activeMemberWarns.Count == 3)
+                                await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.ThirdWarnRoleId);
+                            else if (activeMemberWarns.Count == 2)
+                                await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.SecondWarnRoleId);
+                            else if (activeMemberWarns.Count == 1)
+                                await guild.GetUser(warn.IssuedTo.DiscordId).RemoveRoleAsync(settings.FirstWarnRoleId);
+                            break;
+
+                        case WarnType.Verbal:
+                            break;
+                    }
                 }
             }
 
@@ -273,13 +342,17 @@ namespace NS.Bot.App.Commands
             var embed = msg.Embeds.First().ToEmbedBuilder();
             var removeField = embed.Fields.FirstOrDefault(x => x.Name == "Истекает");
             if (removeField != null)
-            {
                 embed.Fields.Remove(removeField);
-                embed.AddField("Истекает", $"Предупреждение снято. Администратор - {MentionUtils.MentionUser(Context.User.Id)}");
-                embed.WithColor(Color.Green);
-                await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
-            }
+
+            embed.AddField("Предупреждение снято", $"Администратор - {MentionUtils.MentionUser(Context.User.Id)} ({Context.User.Username})");
+            embed.WithColor(Color.Green);
+            await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
+
+            warn.IsActive = false;
+            warn.IssuedTo.TotalWarnCount--;
             await _warnService.UpdateAsync(warn);
+            await _memberService.UpdateAsync(warn.IssuedTo);
+
             await FollowupAsync("Предупреждение отозвано", ephemeral: true);
         }
 
@@ -297,7 +370,7 @@ namespace NS.Bot.App.Commands
             if (Active)
                 warnquerry = warnquerry.Where(x => x.IsActive);
             if (!WithVerbal)
-                warnquerry = warnquerry.Where(x => !x.IsVerbal);
+                warnquerry = warnquerry.Where(x => x.WarnType != WarnType.Verbal);
 
             var warns = warnquerry.ToList();
             if (warns == null || !warns.Any())
@@ -332,24 +405,36 @@ namespace NS.Bot.App.Commands
                 response += (link + " \n");
             }
 
-            response += string.Format("{0} предупреждений было выдано не на этом сервере");
+            response += string.Format("{0} предупреждений было выдано не на этом сервере", unknownWarns);
 
             await FollowupAsync(response, ephemeral: true);
         }
 
-        private Embed GetEmbedWarnMessage(WarnEntity warn)
+        private async Task<Embed> GetEmbedWarnMessage(WarnEntity warn)
         {
-            string title = warn.IsVerbal ? "Устное предупреждение № " : warn.IsReadOnly ? "ReadOnly №" : "Предупреждение №";
-            title += warn.Id.ToString();
+            string title = warn.WarnType switch
+            {
+                WarnType.Verbal => "Устное предупреждение",
+                WarnType.ReadOnly => "ReadOnly",
+                WarnType.Rebuke => "Выговор",
+                WarnType.Ordinary => "Предупреждение",
+                _ => ""
+            };
+
+            var responsibleDiscrod = Context.Guild.GetUser((await _memberService.Get(warn.ResponsibleId)).DiscordId);
+            var issuedToDiscrod = Context.Guild.GetUser((await _memberService.Get(warn.IssuedToId)).DiscordId);
 
             var embedWarn = new EmbedBuilder()
                 .WithTitle(title)
                 .WithColor(Color.Red)
-                .AddField("Администратор", MentionUtils.MentionUser(warn.Responsible.DiscordId))
-                .AddField("Нарушитель", MentionUtils.MentionUser(warn.IssuedTo.DiscordId))
+                .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(responsibleDiscrod.Id), responsibleDiscrod.Username))
+                .AddField("Нарушитель", string.Format("{0} ({1})", MentionUtils.MentionUser(issuedToDiscrod.Id), issuedToDiscrod.Username))
                 .AddField("Причина", warn.Reason);
-            if (!warn.IsVerbal)
+
+            if (warn.WarnType != WarnType.Verbal && !warn.IsPermanent)
                 embedWarn.AddField("Истекает", new TimestampTag(warn.ToDate, TimestampTagStyles.Relative));
+
+            embedWarn.WithFooter($"Уникальный идентификатор - {warn.Id.ToString()}");
 
             return embedWarn.Build();
         }

@@ -11,6 +11,7 @@ using NS.Bot.App.Handlers;
 using NS.Bot.App.Logging;
 using NS.Bot.BuisnessLogic;
 using NS.Bot.BuisnessLogic.Interfaces;
+using NS.Bot.BuisnessLogic.Services;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
 using NS.Bot.Shared.Entities.Warn;
@@ -185,8 +186,9 @@ namespace NS.Bot.App
 
         private async Task WarnRemover(object? sender, ElapsedEventArgs e, IBaseService<WarnEntity> warnService, IBaseService<GuildEntity> guildService, ILogToFileService logger)
         {
-            var expiredWarns = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.IsPermanent && !x.IsReadOnly && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
-            var expiredROs = warnService.GetAll().Where(x => x.IsActive && !x.IsVerbal && !x.IsPermanent && x.IsReadOnly && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
+            var expiredWarns = warnService.GetAll().Where(x => x.IsActive && !x.IsPermanent && x.WarnType == Shared.Enums.WarnType.Ordinary && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
+            var expiredRebukes = warnService.GetAll().Where(x => x.IsActive && !x.IsPermanent && x.WarnType == Shared.Enums.WarnType.Rebuke && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
+            var expiredROs = warnService.GetAll().Where(x => x.IsActive && !x.IsPermanent && x.WarnType == Shared.Enums.WarnType.ReadOnly && x.ToDate < DateTime.UtcNow).ToList() ?? new List<WarnEntity>();
             Console.WriteLine(DateTime.UtcNow.ToString());
 
             if (!expiredWarns.Any() && !expiredROs.Any())
@@ -209,7 +211,7 @@ namespace NS.Bot.App
             foreach (var warn in expiredWarns)
             {
                 warn.IsActive = false;
-                var warnCount = warn.IssuedTo.Warns.Count;
+                var warnCount = warnService.GetAll().Where(x => x.IssuedTo.Id == warn.IssuedToId && x.IsActive && !x.IsPermanent && x.WarnType == Shared.Enums.WarnType.Ordinary).ToList().Count;
                 foreach (var guild in guilds)
                 {
                     if (guild == null)
@@ -244,7 +246,7 @@ namespace NS.Bot.App
                                 if (removeField != null)
                                 {
                                     embed.Fields.Remove(removeField);
-                                    embed.AddField("Истекает", "Срок предупреждения истёк");
+                                    embed.AddField("Предупреждение снято", "Срок предупреждения истёк");
                                     embed.WithColor(Color.Green);
                                     await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
                                 }
@@ -267,11 +269,70 @@ namespace NS.Bot.App
                 }
             }
 
+            foreach (var warn in expiredRebukes)
+            {
+                warn.IsActive = false;
+                var warnCount = warnService.GetAll().Where(x => x.IssuedTo.Id == warn.IssuedToId && x.IsActive && !x.IsPermanent && x.WarnType == Shared.Enums.WarnType.Rebuke).ToList().Count;
+                foreach (var guild in guilds)
+                {
+                    if (guild == null)
+                    {
+                        await logger.Info($"[REBUKE_REMOVE] | Сервер NULL");
+                        continue;
+                    }
+
+                    try
+                    {
+                        var usr = guild.GetUser(warn.IssuedTo.DiscordId);
+                        if (usr == null)
+                        {
+                            await logger.Info($"[REBUKE_REMOVE] | User NULL");
+                            continue;
+                        }
+                        var currentSettings = warnSettings.FirstOrDefault(x => x.RelatedGuild.GuildId == guild.Id);
+                        if (currentSettings == null)
+                        {
+                            Console.WriteLine($"[REBUKE_REMOVE] | Не найдены настройки");
+                            continue;
+                        }
+
+                        var chnl = guild.GetTextChannel(currentSettings.WarnChannelId);
+                        if (chnl != null)
+                        {
+                            var msg = await chnl.GetMessageAsync(warn.MessageId);
+                            if (msg != null)
+                            {
+                                var embed = msg.Embeds.First().ToEmbedBuilder();
+                                var removeField = embed.Fields.FirstOrDefault(x => x.Name == "Истекает");
+                                if (removeField != null)
+                                {
+                                    embed.Fields.Remove(removeField);
+                                    embed.AddField("Выговор снят", "Срок выговора истёк");
+                                    embed.WithColor(Color.Green);
+                                    await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
+                                }
+                            }
+                        }
+
+                        if (warnCount == 1)
+                            await usr.RemoveRoleAsync(currentSettings.FirstRebukeRoleId);
+                        else if (warnCount == 2)
+                            await usr.RemoveRoleAsync(currentSettings.SecondRebukeRoleId);
+                        else if (warnCount == 3)
+                            await usr.RemoveRoleAsync(currentSettings.ThirdRebukeRoleId);
+                        await warnService.UpdateAsync(warn);
+                        await logger.Info($"[REBUKE_REMOVE] | Снят выговор у пользователя {usr.Nickname}");
+                    }
+                    catch (Exception ex)
+                    {
+                        await logger.Error($"[REBUKE_REMOVE] | {ex.Message}");
+                    }
+                }
+            }
+
             foreach (var warn in expiredROs)
             {
                 warn.IsActive = false;
-                var warnCount = warn.IssuedTo.Warns.Count;
-
                 foreach (var guild in guilds)
                 {
                     if (guild == null)
@@ -307,7 +368,7 @@ namespace NS.Bot.App
                                 if (removeField != null)
                                 {
                                     embed.Fields.Remove(removeField);
-                                    embed.AddField("Истекает", "Срок ReadOnly истёк");
+                                    embed.AddField("RO снят", "Срок ReadOnly истёк");
                                     embed.WithColor(Color.Green);
                                     await chnl.ModifyMessageAsync(warn.MessageId, msg => { msg.Embeds = new Embed[] { embed.Build() }; });
                                 }

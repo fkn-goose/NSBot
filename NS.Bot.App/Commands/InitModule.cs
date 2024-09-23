@@ -2,7 +2,6 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using NS.Bot.BuisnessLogic.Interfaces;
-using NS.Bot.BuisnessLogic.Services;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
@@ -56,7 +55,9 @@ namespace NS.Bot.App.Commands
 
         [SlashCommand("warninit", "Инициализация предов")]
         [RequireOwner]
-        public async Task InitWarnSettings([Summary("Канал_предов")] ITextChannel warnChannel, [Summary("Первый")] IRole firstRole, [Summary("Второй")] IRole secondRole, [Summary("Третий")] IRole thirdRole, [Summary("Бан")] IRole banRole, [Summary("Ридонли")] IRole readonlyRole)
+        public async Task InitWarnSettings([Summary("Канал_предов")] ITextChannel warnChannel, [Summary("Первый")] IRole firstRole, [Summary("Второй")] IRole secondRole, [Summary("Третий")] IRole thirdRole, 
+                                           [Summary("Бан")] IRole banRole, [Summary("Ридонли")] IRole readonlyRole, 
+                                           [Summary("Выговор1")] IRole firstRebukeRole, [Summary("Выговор2")] IRole secondRebukeRole, [Summary("Выговор3")] IRole thirdRebukeRole)
         {
             await DeferAsync(ephemeral: true);
 
@@ -71,6 +72,9 @@ namespace NS.Bot.App.Commands
                 FirstWarnRoleId = firstRole.Id,
                 SecondWarnRoleId = secondRole.Id,
                 ThirdWarnRoleId = thirdRole.Id,
+                FirstRebukeRoleId = firstRebukeRole.Id,
+                SecondRebukeRoleId = secondRebukeRole.Id,
+                ThirdRebukeRoleId = thirdRebukeRole.Id,
                 BanRoleId = banRole.Id,
                 ReadOnlyRoleId = readonlyRole.Id
             };
