@@ -27,6 +27,7 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<IBaseService<WarnSettings>, BaseService<WarnSettings>>();
             container.AddScoped<IBaseService<WarnEntity>, BaseService<WarnEntity>>();
             container.AddScoped<IBaseService<GuildRoles>, BaseService<GuildRoles>>();
+            container.AddScoped<IBaseService<GuildData>, BaseService<GuildData>>();
             //container.AddScoped<IBaseService<>, BaseService<>>();
 
             #endregion

@@ -17,16 +17,20 @@ namespace NS.Bot.App.Commands
         private readonly IWarnSettingsService _warnSettingsService;
         private readonly IRadioSettingsService _radioSettingsService;
         private readonly IBaseService<GuildRoles> _guildRolesService;
-        public InitModule(IGuildService guildService, IBaseService<GroupEntity> groupService, IWarnSettingsService warnSettingsService, IRadioSettingsService radioSettingsService, IBaseService<GuildRoles> guildRolesService)
+        private readonly IBaseService<GuildData> _guildDataService;
+        public InitModule(IGuildService guildService, IBaseService<GroupEntity> groupService, IWarnSettingsService warnSettingsService, 
+            IRadioSettingsService radioSettingsService, IBaseService<GuildRoles> guildRolesService, IBaseService<GuildData> guildDataService)
         {
             _guildService = guildService;
             _groupService = groupService;
             _warnSettingsService = warnSettingsService;
             _radioSettingsService = radioSettingsService;
             _guildRolesService = guildRolesService;
+            _guildDataService = guildDataService;
         }
 
         [SlashCommand("serverinit", "Инициализация сервера")]
+        [RequireOwner]
         public async Task InitServer()
         {
             GuildEntity? curGuild = _guildService.GetAll().FirstOrDefault(x => x.GuildId == Context.Guild.Id);
@@ -134,6 +138,29 @@ namespace NS.Bot.App.Commands
             await _guildRolesService.CreateOrUpdateAsync(roles);
 
             await FollowupAsync("Роли сохранены", ephemeral: true);
+        }
+
+        [SlashCommand("datainit", "Инициализация доп. данных")]
+        [RequireOwner]
+        public async Task InitData([Summary("Зона")] IVoiceChannel zoneChannel, [Summary("ЖДК")] IVoiceChannel jdk, [Summary("ЖДХ")] IVoiceChannel jdh)
+        {
+            await DeferAsync(ephemeral: true);
+
+            var guild = await _guildService.GetByDiscordId(Context.Guild.Id);
+            if (guild == null)
+                return;
+
+            GuildData guildData = new GuildData()
+            {
+                RelatedGuildId = guild.Id,
+                ZoneVoiceId = zoneChannel.Id,
+                JDKVoiceId = jdk.Id,
+                JDHVoiceId = jdh.Id,
+            };
+
+            await _guildDataService.CreateOrUpdateAsync(guildData);
+
+            await FollowupAsync("Данные сохранены", ephemeral: true);
         }
     }
 }
