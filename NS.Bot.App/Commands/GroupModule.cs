@@ -57,7 +57,7 @@ namespace NS.Bot.Commands.CommandModules
 
             //Создаем или получаем данные игрока
             var guildMember = await _guildMemberService.GetByDiscordIdAsync(user.Id, CurrentGuild.GuildId);
-            if(guildMember == null)
+            if (guildMember == null)
             {
                 var member = await _memberService.GetByDiscordIdAsync(user.Id);
                 member ??= await _memberService.CreateMemberAsync(user.Id, CurrentGuild);
@@ -103,7 +103,7 @@ namespace NS.Bot.Commands.CommandModules
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 var member = await _memberService.GetByDiscordIdAsync(user.Id);
-                if(member == null)
+                if (member == null)
                     await _memberService.CreateMemberAsync(user.Id, CurrentGuild);
                 return;
             }
@@ -181,7 +181,7 @@ namespace NS.Bot.Commands.CommandModules
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task DisbandGroup([Summary(name: "Группировка", description: "Название группировки")] GroupEnum groupsEnum)
         {
-            if(groupsEnum == GroupEnum.Loner)
+            if (groupsEnum == GroupEnum.Loner)
             {
                 await RespondAsync("Нельзя расформировать одиночек!", ephemeral: true);
                 return;
@@ -238,19 +238,28 @@ namespace NS.Bot.Commands.CommandModules
 
             var memberNames = string.Empty;
             var i = 0;
+            var nullmembers = string.Empty;
 
             foreach (var groupMember in groupMembers)
             {
                 i++;
                 var member = groupMember.Member;
                 var discordUser = Context.Guild.GetUser(member.DiscordId);
+                if(discordUser == null)
+                {
+                    var lonerGroup = await _groupService.GetGroupByEnum(GroupEnum.Loner, CurrentGuild);
+                    groupMember.Group = lonerGroup;
+                    await _guildMemberService.UpdateAsync(groupMember);
+                    nullmembers += groupMember.Member.DiscordId + " ";
+                    continue;
+                }
                 memberNames += string.Format("{0}. {1} ({2}) \n", i.ToString(), MentionUtils.MentionUser(discordUser.Id), discordUser.Username);
             }
 
             var groupEmbed = new EmbedBuilder()
                 .WithTitle($"Группировка {GetValueExtension.GetDescription(groupsEnum)}");
 
-            if (group.CuratorId != null || group.CuratorId != 0)
+            if (group.CuratorId != null && group.CuratorId != 0)
             {
                 var curatorGuildMember = await _guildMemberService.Get(group.CuratorId.Value);
                 if (curatorGuildMember != null)
@@ -260,7 +269,7 @@ namespace NS.Bot.Commands.CommandModules
                 }
             }
 
-                if (group.Leader != null)
+            if (group.Leader != null)
             {
                 var groupLeaderGuildMember = await _guildMemberService.Get(group.Leader.Value);
                 var groupLeaderDiscrodUser = Context.Guild.GetUser(groupLeaderGuildMember.Member.DiscordId);
@@ -269,8 +278,11 @@ namespace NS.Bot.Commands.CommandModules
 
             groupEmbed.AddField("Состав:", memberNames)
                       .WithColor(Color.Blue);
-            
-            await FollowupAsync(embed: groupEmbed.Build(), ephemeral: false);
+
+            if(string.IsNullOrEmpty(nullmembers))
+                await FollowupAsync(embed: groupEmbed.Build(), ephemeral: false);
+            else
+                await FollowupAsync(text: string.Format("Спискок ненайденных пользователей: {0}. Они были удалены из группировки.", nullmembers),embed: groupEmbed.Build(), ephemeral: false);
         }
 
         [UserCommand("группировка игрока")]
