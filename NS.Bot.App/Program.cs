@@ -11,10 +11,10 @@ using NS.Bot.App.Handlers;
 using NS.Bot.App.Logging;
 using NS.Bot.BuisnessLogic;
 using NS.Bot.BuisnessLogic.Interfaces;
-using NS.Bot.BuisnessLogic.Services;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
 using NS.Bot.Shared.Entities.Warn;
+using NS.Bot.Shared.Models;
 using System.Timers;
 
 namespace NS.Bot.App
@@ -30,7 +30,8 @@ namespace NS.Bot.App
         {
             try
             {
-                await RunAsync(CreateHostBuilder(args).Build());
+                var builder = CreateHostBuilder(args);
+                await RunAsync(builder.Build());
             }
             catch (Exception ex)
             {
@@ -46,7 +47,7 @@ namespace NS.Bot.App
             var path = Path.GetFullPath("appsettings.json");
             var config = new ConfigurationBuilder()
 #if DEBUG
-                .AddJsonFile(path, false)
+                .AddJsonFile(path, optional: false, reloadOnChange: true)
 #else
                 .AddJsonFile("appsettings.json", false)
 #endif
@@ -54,6 +55,8 @@ namespace NS.Bot.App
 
             return builder.ConfigureServices((_, services) =>
             {
+                services.AddOptions<List<TicketSettingsModel>>().Bind(config.GetSection("TicketSettings"));
+                services.AddOptions<string>().Bind(config.GetSection("SteamAPIKey"));
                 services.AddSingleton(config);
                 services.AddBuisnessServices();
                 services.AddDbContext<AppDbContext>(options =>
@@ -76,6 +79,7 @@ namespace NS.Bot.App
                     LogLevel = Discord.LogSeverity.Debug,
                     DefaultRunMode = Discord.Commands.RunMode.Async
                 }));
+
             });
         }
 
@@ -344,18 +348,18 @@ namespace NS.Bot.App
                     try
                     {
                         var usr = guild.GetUser(warn.IssuedTo.DiscordId);
-                            if (usr == null)
-                            {
-                                await logger.Info($"[RO_REMOVE] | User NULL");
-                                continue;
-                            }
+                        if (usr == null)
+                        {
+                            await logger.Info($"[RO_REMOVE] | User NULL");
+                            continue;
+                        }
 
                         var currentSettings = warnSettings.FirstOrDefault(x => x.RelatedGuild.GuildId == guild.Id);
-                            if (currentSettings == null)
-                            {
-                                Console.WriteLine($"[RO_REMOVE] | Не найдены настройки");
-                                continue;
-                            }
+                        if (currentSettings == null)
+                        {
+                            Console.WriteLine($"[RO_REMOVE] | Не найдены настройки");
+                            continue;
+                        }
 
                         var chnl = guild.GetTextChannel(currentSettings.WarnChannelId);
                         if (chnl != null)

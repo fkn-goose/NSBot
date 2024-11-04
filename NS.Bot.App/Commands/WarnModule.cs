@@ -427,9 +427,9 @@ namespace NS.Bot.App.Commands
             var embedWarn = new EmbedBuilder()
                 .WithTitle(title)
                 .WithColor(Color.Red)
-                .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(responsibleDiscrod.Id), responsibleDiscrod.Username))
+                .AddField("Причина", warn.Reason)
                 .AddField("Нарушитель", string.Format("{0} ({1})", MentionUtils.MentionUser(issuedToDiscrod.Id), issuedToDiscrod.Username))
-                .AddField("Причина", warn.Reason);
+                .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(responsibleDiscrod.Id), responsibleDiscrod.Username));
 
             if (warn.WarnType != WarnType.Verbal && !warn.IsPermanent)
                 embedWarn.AddField("Истекает", new TimestampTag(warn.ToDate, TimestampTagStyles.Relative));

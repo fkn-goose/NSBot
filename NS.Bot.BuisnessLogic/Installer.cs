@@ -5,6 +5,7 @@ using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
+using NS.Bot.Shared.Entities.Ticket;
 using NS.Bot.Shared.Entities.Warn;
 
 namespace NS.Bot.BuisnessLogic
@@ -13,7 +14,6 @@ namespace NS.Bot.BuisnessLogic
     {
         public static void AddBuisnessServices(this IServiceCollection container)
         {
-            container.AddSingleton<ILogToFileService, LogToFileService>();
 
             #region BaseCrud
 
@@ -28,18 +28,20 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<IBaseService<WarnEntity>, BaseService<WarnEntity>>();
             container.AddScoped<IBaseService<GuildRoles>, BaseService<GuildRoles>>();
             container.AddScoped<IBaseService<GuildData>, BaseService<GuildData>>();
+            container.AddScoped<IBaseTicketService<TicketBase>, TicketService<TicketBase>>();
+            container.AddScoped<IBaseTicketService<TicketNick>, TicketService<TicketNick>>();
             //container.AddScoped<IBaseService<>, BaseService<>>();
 
             #endregion
 
             container.AddScoped<IGuildService, GuildService>();
             container.AddScoped<IGuildMemberService, GuildMemberService>();
-            container.AddScoped<ITicketService, TicketService>();
             container.AddScoped<IGroupService, GroupService>();
             container.AddScoped<IMemberService, MemberService>();
             container.AddScoped<IRadioSettingsService, RadioSettingsService>();
             container.AddScoped<IWarnSettingsService, WarnSettingsService>();
             container.AddScoped<IWarnService, WarnService>();
+            container.AddScoped<ILogToFileService, LogToFileService>();
         }
     }
 }

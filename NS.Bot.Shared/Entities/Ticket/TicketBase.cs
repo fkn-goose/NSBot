@@ -4,12 +4,23 @@ using System;
 
 namespace NS.Bot.Shared.Entities
 {
-    public class TicketEntity : BaseEntity
+    public class TicketBase : BaseEntity
     {
         /// <summary>
         /// Сервер к которому принадлежит тикет
         /// </summary>
-        public GuildEntity Guild { get; set; }
+        public long GuildId { get; set; }
+        public virtual GuildEntity Guild { get; set; }
+
+        /// <summary>
+        /// Id создателя тикета
+        /// </summary>
+        public long CreatedById { get; set; }
+
+        /// <summary>
+        /// Id ответственного
+        /// </summary>
+        public long ResponsibleId { get; set; }
 
         /// <summary>
         /// Айди канала тикета
@@ -25,6 +36,11 @@ namespace NS.Bot.Shared.Entities
         /// Тип тикета
         /// </summary>
         public TicketTypeEnum Type { get; set; }
+
+        /// <summary>
+        /// Приична обращения
+        /// </summary>
+        public string Reason { get; set; }
 
         /// <summary>
         /// Время после которого тикет можно удалять

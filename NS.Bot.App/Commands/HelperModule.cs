@@ -50,13 +50,10 @@ namespace NS.Bot.App.Commands
             var msg = string.Empty;
             EmbedBuilder notificationEmbed = new EmbedBuilder()
                 .WithTitle("Уведомление")
-                .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username))
-                .AddField("Адресат", string.Format("{0} ({1})", MentionUtils.MentionUser(user.Id), user.Username))
                 .WithColor(Color.DarkBlue);
 
             EmbedBuilder msgToUser = new EmbedBuilder()
                 .WithTitle("Уведомление")
-                .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username))
                 .WithColor(Color.DarkBlue);
 
             switch (notificationType)
@@ -101,8 +98,13 @@ namespace NS.Bot.App.Commands
                     return;
             }
 
+            notificationEmbed.AddField("Адресат", string.Format("{0} ({1})", MentionUtils.MentionUser(user.Id), user.Username))
+                             .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username));
+
             var warnChannel = Context.Guild.GetTextChannel(settings.WarnChannelId);
             var msgId = await warnChannel.SendMessageAsync(text: MentionUtils.MentionUser(user.Id), embed: notificationEmbed.Build());
+
+            msgToUser.AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username));
             msgToUser.AddField("Сообщение", $"https://discord.com/channels/{Context.Guild.Id}/{settings.WarnChannelId}/{msgId.Id}");
             await user.SendMessageAsync(embed:msgToUser.Build());
 

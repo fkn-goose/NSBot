@@ -3,6 +3,7 @@ using NS.Bot.Shared.Entities;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
+using NS.Bot.Shared.Entities.Ticket;
 using NS.Bot.Shared.Entities.Warn;
 using System;
 
@@ -20,8 +21,9 @@ namespace NS.Bot.BuisnessLogic
 
         #region Ticket
 
-        public DbSet<TicketSettings> TicketSettings { get; set; }
-        public DbSet<TicketEntity> Tickets { get; set; }
+        //public DbSet<TicketSettingsModel> TicketSettings { get; set; }
+        public DbSet<TicketBase> BaseTickets { get; set; }
+        public DbSet<TicketNick> NickTickets { get; set; }
 
         #endregion
 
