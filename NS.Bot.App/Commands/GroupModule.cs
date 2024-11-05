@@ -215,6 +215,9 @@ namespace NS.Bot.Commands.CommandModules
         [SlashCommand("состав", "Состав группировки")]
         public async Task GetGroupMembers([Summary(name: "Группировка", description: "Название группировки")] GroupEnum groupsEnum)
         {
+            if (groupsEnum == GroupEnum.Loner)
+                await RespondAsync("Одиночка - это не группировка");
+
             await DeferAsync(ephemeral: false);
 
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);

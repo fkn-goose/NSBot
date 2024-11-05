@@ -61,6 +61,9 @@ namespace NS.Bot.Shared.Enums
         Bandits,
         [ChoiceDisplay("Наёмники")]
         [Description("Наёмники")]
-        Mercenaries
+        Mercenaries,
+        [ChoiceDisplay("Охрана деревни")]
+        [Description("Охрана деревни")]
+        Villagers
     }
 }
