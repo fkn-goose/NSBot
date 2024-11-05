@@ -14,6 +14,7 @@ namespace NS.Bot.BuisnessLogic
     {
         public static void AddBuisnessServices(this IServiceCollection container)
         {
+            container.AddSingleton<ILogToFileService, LogToFileService>();
 
             #region BaseCrud
 
@@ -40,7 +41,6 @@ namespace NS.Bot.BuisnessLogic
             container.AddScoped<IRadioSettingsService, RadioSettingsService>();
             container.AddScoped<IWarnSettingsService, WarnSettingsService>();
             container.AddScoped<IWarnService, WarnService>();
-            container.AddScoped<ILogToFileService, LogToFileService>();
         }
     }
 }

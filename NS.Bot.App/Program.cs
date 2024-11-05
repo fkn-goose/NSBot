@@ -30,8 +30,7 @@ namespace NS.Bot.App
         {
             try
             {
-                var builder = CreateHostBuilder(args);
-                await RunAsync(builder.Build());
+                await RunAsync(CreateHostBuilder(args).Build());
             }
             catch (Exception ex)
             {
@@ -57,6 +56,7 @@ namespace NS.Bot.App
             ConfigurationBinder.Bind(config, appsettings);
             return builder.ConfigureServices((_, services) =>
             {
+                services.AddSingleton(config);
                 services.AddBuisnessServices();
                 services.AddDbContext<AppDbContext>(options =>
                 {
@@ -73,7 +73,6 @@ namespace NS.Bot.App
                 services.AddTransient<ConsoleLogger>();
                 services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
                 services.AddSingleton<InteractionHandler>();
-                services.AddSingleton(config);
                 services.AddSingleton(appsettings);
                 services.AddSingleton(x => new CommandService(new CommandServiceConfig
                 {
