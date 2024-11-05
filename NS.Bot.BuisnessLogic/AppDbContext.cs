@@ -38,7 +38,6 @@ namespace NS.Bot.BuisnessLogic
         public DbSet<GuildMember> GuildMembers { get; set; }
         public DbSet<GuildEntity> Guilds { get; set; }
         public DbSet<GuildRoles> GuildRoles { get; set; }
-        public DbSet<GuildData> GuildData { get; set; }
 
         #endregion
 

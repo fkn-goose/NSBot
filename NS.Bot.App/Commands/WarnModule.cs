@@ -5,6 +5,7 @@ using NS.Bot.BuisnessLogic.Interfaces;
 using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Warn;
 using NS.Bot.Shared.Enums;
+using NS.Bot.Shared.Models;
 
 namespace NS.Bot.App.Commands
 {

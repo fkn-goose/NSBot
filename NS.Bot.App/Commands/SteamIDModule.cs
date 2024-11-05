@@ -13,13 +13,13 @@ namespace NS.Bot.App.Commands
         private readonly IMemberService _memberService;
         private readonly IGuildService _guildService;
         private readonly IGuildMemberService _guildMemberService;
-        private readonly IConfigurationRoot _config;
-        public SteamIDModule(IMemberService memberService, IGuildService guildService, IGuildMemberService guildMemberService, IConfigurationRoot config)
+        private readonly AppsettingsModel _appsettings;
+        public SteamIDModule(IMemberService memberService, IGuildService guildService, IGuildMemberService guildMemberService, AppsettingsModel appsettings)
         {
             _memberService = memberService;
             _guildService = guildService;
             _guildMemberService = guildMemberService;
-            _config = config;
+            _appsettings = appsettings;
         }
 
         [SlashCommand("получить", "Получить steamid игрока")]
@@ -85,7 +85,7 @@ namespace NS.Bot.App.Commands
 
         private async Task<bool> ValidateSteamID(string steamID)
         {
-            var steamApiKey = _config["SteamAPIKey"];
+            var steamApiKey = _appsettings.SteamAPIKey;
             if (steamApiKey == null)
                 return false;
 

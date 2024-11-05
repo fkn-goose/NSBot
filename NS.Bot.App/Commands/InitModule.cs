@@ -23,22 +23,16 @@ namespace NS.Bot.App.Commands
         private readonly IWarnSettingsService _warnSettingsService;
         private readonly IRadioSettingsService _radioSettingsService;
         private readonly IBaseService<GuildRoles> _guildRolesService;
-        private readonly IBaseService<GuildData> _guildDataService;
         private readonly IConfigurationRoot _config;
-
-        private readonly List<TicketSettingsModel> tsettings;
         public InitModule(IGuildService guildService, IBaseService<GroupEntity> groupService, IWarnSettingsService warnSettingsService,
-            IRadioSettingsService radioSettingsService, IBaseService<GuildRoles> guildRolesService, IBaseService<GuildData> guildDataService, IConfigurationRoot config, IOptions<List<TicketSettingsModel>> ticketSettings)
+            IRadioSettingsService radioSettingsService, IBaseService<GuildRoles> guildRolesService, IConfigurationRoot config)
         {
             _guildService = guildService;
             _groupService = groupService;
             _warnSettingsService = warnSettingsService;
             _radioSettingsService = radioSettingsService;
             _guildRolesService = guildRolesService;
-            _guildDataService = guildDataService;
             _config = config;
-
-            tsettings = ticketSettings.Value;
         }
 
         [SlashCommand("serverinit", "Инициализация сервера")]
@@ -154,25 +148,77 @@ namespace NS.Bot.App.Commands
 
         [SlashCommand("datainit", "Инициализация доп. данных")]
         [RequireOwner]
-        public async Task InitData([Summary("Зона")] IVoiceChannel zoneChannel, [Summary("ЖДК")] IVoiceChannel jdk, [Summary("ЖДХ")] IVoiceChannel jdh)
+        public async Task InitData([Summary("Зона")] IVoiceChannel zoneChannel, [Summary("ЖДК")] IVoiceChannel jdk, [Summary("ЖДХ")] IVoiceChannel jdh, [Summary("Канал_предов")] ITextChannel warnChannel)
         {
+            var filePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+            string json = File.ReadAllText(filePath);
+
+            if (json == null)
+            {
+                await RespondAsync("Не найден appsettings.json", ephemeral: true);
+                return;
+            }
+
+            AppsettingsModel? settings = JsonSerializer.Deserialize<AppsettingsModel>(json);
+
+            if (settings == null)
+            {
+                await RespondAsync("Не считан appsettings.json", ephemeral: true);
+                return;
+            }
+
             await DeferAsync(ephemeral: true);
+
+            var allSettings = settings.GuildDatas;
+            if (allSettings == null)
+                allSettings = new List<GuildData>();
+
+            var curSettings = allSettings.FirstOrDefault(x => x.RelatedGuildId == Context.Guild.Id);
+            var oldsettings = new GuildData();
+            bool isNew = false;
+            if (curSettings == null)
+            {
+                isNew = true;
+                curSettings = new GuildData();
+            }
+            else
+                oldsettings = curSettings;
 
             var guild = await _guildService.GetByDiscordId(Context.Guild.Id);
             if (guild == null)
                 return;
 
-            GuildData guildData = new GuildData()
+            curSettings = new GuildData()
             {
-                RelatedGuildId = guild.Id,
+                RelatedGuildId = Context.Guild.Id,
                 ZoneVoiceId = zoneChannel.Id,
                 JDKVoiceId = jdk.Id,
                 JDHVoiceId = jdh.Id,
+                WarnChannelId = warnChannel.Id,
             };
 
-            await _guildDataService.CreateOrUpdateAsync(guildData);
+            if (isNew)
+                allSettings.Add(curSettings);
+            else
+            {
+                allSettings.Remove(oldsettings);
+                allSettings.Add(curSettings);
+            }
 
-            await FollowupAsync("Данные сохранены", ephemeral: true);
+            settings.GuildDatas = allSettings;
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic)
+            };
+
+            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "appsettings_temp.json"), JsonSerializer.Serialize(settings, options));
+            File.Delete(filePath);
+            File.Move(Path.Combine(AppContext.BaseDirectory, "appsettings_temp.json"), filePath);
+            _config.Reload();
+
+            await FollowupAsync("Настройки успешно сохранены", ephemeral: true);
         }
 
         [SlashCommand("ticketsinit", "Инициализация тикетов")]
@@ -208,7 +254,7 @@ namespace NS.Bot.App.Commands
                 return;
             }
 
-            AppsettiingsModel? settings = JsonSerializer.Deserialize<AppsettiingsModel>(json);
+            AppsettingsModel? settings = JsonSerializer.Deserialize<AppsettingsModel>(json);
 
             if(settings == null)
             {

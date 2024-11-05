@@ -42,6 +42,7 @@ namespace NS.Bot.App
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
+            AppsettingsModel appsettings = new AppsettingsModel();
             var builder = Host.CreateDefaultBuilder(args);
 
             var path = Path.GetFullPath("appsettings.json");
@@ -51,13 +52,14 @@ namespace NS.Bot.App
 #else
                 .AddJsonFile("appsettings.json", false)
 #endif
+                .AddEnvironmentVariables()
                 .Build();
-
+            ConfigurationBinder.Bind(config, appsettings);
             return builder.ConfigureServices((_, services) =>
             {
-                services.AddOptions<List<TicketSettingsModel>>().Bind(config.GetSection("TicketSettings"));
-                services.AddOptions<string>().Bind(config.GetSection("SteamAPIKey"));
+                //Переписать, т.к. имею экземпляр настроек
                 services.AddSingleton(config);
+                services.AddSingleton(appsettings);
                 services.AddBuisnessServices();
                 services.AddDbContext<AppDbContext>(options =>
                 {

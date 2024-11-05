@@ -2,11 +2,6 @@
 
 namespace NS.Bot.Shared.Models
 {
-    public class TicketSettingsList
-    {
-        public List<TicketSettingsModel> Settings { get; set; }
-    }
-
     public class TicketSettingsModel
     {
         public string RelatedGuildName { get; set; }

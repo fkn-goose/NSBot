@@ -1,42 +1,40 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NS.Bot.BuisnessLogic.Interfaces;
-using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Enums;
+using NS.Bot.Shared.Models;
 
 namespace NS.Bot.App.Commands
 {
     [Group("хелпер", "Команды для хелперов и старше")]
     public class HelperModule : InteractionModuleBase<SocketInteractionContext>
     {
-        private readonly IWarnSettingsService _warnSettingsService;
         private readonly IGuildService _guildService;
-        private readonly IBaseService<GuildData> _guildData;
-        public HelperModule(IWarnSettingsService warnSettingsService, IGuildService guildService, IBaseService<GuildData> guildData)
+        private readonly AppsettingsModel _appsettings;
+        public HelperModule(IGuildService guildService, AppsettingsModel appsettings)
         {
-            _warnSettingsService = warnSettingsService;
             _guildService = guildService;
-            _guildData = guildData;
+            _appsettings = appsettings;
         }
 
         [SlashCommand("уведомление", "Отправляет уведомление выбранного типа")]
         public async Task Notification([Summary("Пользователь")] IGuildUser user, [Summary("Тип")] HelperNotificationType notificationType)
         {
             await DeferAsync(ephemeral: true);
-
+            
             var currentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
-            var guildData = await _guildData.GetAll().FirstOrDefaultAsync(x => x.RelatedGuildId == currentGuild.Id);
-            if (guildData == null)
+
+            if (_appsettings.GuildDatas == null)
             {
-                await FollowupAsync("Не удалось поулчить данные сервера", ephemeral: true);
+                await FollowupAsync("Не удалось поулчить настройки предупреждений", ephemeral: true);
                 return;
             }
 
-            var settings = await _warnSettingsService.GetWarnSettingsAsync(Context.Guild.Id);
+            var settings = _appsettings.GuildDatas.FirstOrDefault(x=>x.RelatedGuildId == Context.Guild.Id);
             if (settings == null)
             {
-                await FollowupAsync("Не удалось поулчить настройки предупреждений", ephemeral: true);
+                await FollowupAsync("Не удалось поулчить настройки предупреждений для сервера", ephemeral: true);
                 return;
             }
 
@@ -79,19 +77,19 @@ namespace NS.Bot.App.Commands
                     notificationEmbed.AddField("Уберите приписку", msg);
                     break;
                 case HelperNotificationType.InChannel:
-                    msg = $"Во время игры вы должны быть в канале https://discord.com/channels/{Context.Guild.Id}/{guildData.ZoneVoiceId}, либо в канале РП-Рации, при имении самой рации на рюкзаке или в инвентаре со вставленной батарейкой.";
+                    msg = $"Во время игры вы должны быть в канале https://discord.com/channels/{Context.Guild.Id}/{settings.ZoneVoiceId}, либо в канале РП-Рации, при имении самой рации на рюкзаке или в инвентаре со вставленной батарейкой.";
                     msgToUser.AddField("Зайдите в канал Зона", msg);
-                    notificationEmbed.AddField("Зайдите в канал Зона", $"Во время игры вы должны быть в канале {MentionUtils.MentionChannel(guildData.ZoneVoiceId)}, либо в канале РП-Рации, при имении самой рации на рюкзаке или в инвентаре со вставленной батарейкой.");
+                    notificationEmbed.AddField("Зайдите в канал Зона", $"Во время игры вы должны быть в канале {MentionUtils.MentionChannel(settings.ZoneVoiceId)}, либо в канале РП-Рации, при имении самой рации на рюкзаке или в инвентаре со вставленной батарейкой.");
                     break;
                 case HelperNotificationType.JDK:
-                    msg = $"Зайдите в канал https://discord.com/channels/{Context.Guild.Id}/{guildData.JDKVoiceId}";
+                    msg = $"Зайдите в канал https://discord.com/channels/{Context.Guild.Id}/{settings.JDKVoiceId}";
                     msgToUser.AddField("Зайдите в канал \"Жду Куратора\"", msg);
-                    notificationEmbed.AddField("Зайдите в канал \"Жду Куратора\"", $"Зайдите в канал {MentionUtils.MentionChannel(guildData.JDKVoiceId)}");
+                    notificationEmbed.AddField("Зайдите в канал \"Жду Куратора\"", $"Зайдите в канал {MentionUtils.MentionChannel(settings.JDKVoiceId)}");
                     break;
                 case HelperNotificationType.JDH:
-                    msg = $"Зайдите в канал https://discord.com/channels/{Context.Guild.Id}/{guildData.JDHVoiceId}";
+                    msg = $"Зайдите в канал https://discord.com/channels/{Context.Guild.Id}/{settings.JDHVoiceId}";
                     msgToUser.AddField("Зайдите в канал \"Жду Хелпера\"", msg);
-                    notificationEmbed.AddField("Зайдите в канал \"Жду Хелпера\"", $"Зайдите в канал {MentionUtils.MentionChannel(guildData.JDHVoiceId)}");
+                    notificationEmbed.AddField("Зайдите в канал \"Жду Хелпера\"", $"Зайдите в канал {MentionUtils.MentionChannel(settings.JDHVoiceId)}");
                     break;
                 default:
                     await FollowupAsync("Неизвестная интеракция", ephemeral: true);
@@ -105,7 +103,7 @@ namespace NS.Bot.App.Commands
 
             msgToUser.AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username));
             msgToUser.AddField("Сообщение", $"https://discord.com/channels/{Context.Guild.Id}/{settings.WarnChannelId}/{msgId.Id}");
-            await user.SendMessageAsync(embed:msgToUser.Build());
+            await user.SendMessageAsync(embed: msgToUser.Build());
 
             await FollowupAsync("Уведомление отправлено", ephemeral: true);
         }
