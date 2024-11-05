@@ -428,7 +428,6 @@ namespace NS.Bot.App.Commands
                 .WithTitle(title)
                 .WithColor(Color.Red)
                 .AddField("Причина", warn.Reason)
-                .AddField("Нарушитель", string.Format("{0} ({1})", MentionUtils.MentionUser(issuedToDiscrod.Id), issuedToDiscrod.Username))
                 .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(responsibleDiscrod.Id), responsibleDiscrod.Username));
 
             if (warn.WarnType != WarnType.Verbal && !warn.IsPermanent)

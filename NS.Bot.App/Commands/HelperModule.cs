@@ -98,8 +98,7 @@ namespace NS.Bot.App.Commands
                     return;
             }
 
-            notificationEmbed.AddField("Адресат", string.Format("{0} ({1})", MentionUtils.MentionUser(user.Id), user.Username))
-                             .AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username));
+            notificationEmbed.AddField("Администратор", string.Format("{0} ({1})", MentionUtils.MentionUser(Context.User.Id), Context.User.Username));
 
             var warnChannel = Context.Guild.GetTextChannel(settings.WarnChannelId);
             var msgId = await warnChannel.SendMessageAsync(text: MentionUtils.MentionUser(user.Id), embed: notificationEmbed.Build());
