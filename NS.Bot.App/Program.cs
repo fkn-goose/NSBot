@@ -57,9 +57,6 @@ namespace NS.Bot.App
             ConfigurationBinder.Bind(config, appsettings);
             return builder.ConfigureServices((_, services) =>
             {
-                //Переписать, т.к. имею экземпляр настроек
-                services.AddSingleton(config);
-                services.AddSingleton(appsettings);
                 services.AddBuisnessServices();
                 services.AddDbContext<AppDbContext>(options =>
                 {
@@ -76,6 +73,8 @@ namespace NS.Bot.App
                 services.AddTransient<ConsoleLogger>();
                 services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
                 services.AddSingleton<InteractionHandler>();
+                services.AddSingleton(config);
+                services.AddSingleton(appsettings);
                 services.AddSingleton(x => new CommandService(new CommandServiceConfig
                 {
                     LogLevel = Discord.LogSeverity.Debug,
