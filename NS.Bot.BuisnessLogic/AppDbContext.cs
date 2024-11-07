@@ -61,10 +61,6 @@ namespace NS.Bot.BuisnessLogic
             {
                 g.HasIndex(u => u.GroupType)
                 .IsUnique();
-
-                g.HasOne(u => u.Curator)
-                .WithOne()
-                .HasForeignKey<GroupEntity>(x => x.CuratorId);
             });
 
             modelBuilder.Entity<MemberEntity>(g =>

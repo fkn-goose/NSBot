@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Interactions;
-using Microsoft.Extensions.Configuration;
 using NS.Bot.BuisnessLogic.Interfaces;
 using NS.Bot.Shared.Models;
 using System.Text.Json;

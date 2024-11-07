@@ -237,7 +237,6 @@ namespace NS.Bot.App.Commands
                 return;
             }
 
-            group.Curator = guildMember;
             group.CuratorId = guildMember.Id;
             await _groupService.UpdateAsync(group);
             await FollowupAsync("Куратор установлен", ephemeral: true);
