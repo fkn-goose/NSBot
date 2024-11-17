@@ -15,6 +15,10 @@ using NS.Bot.Shared.Entities.Guild;
 using NS.Bot.Shared.Entities.Radio;
 using NS.Bot.Shared.Entities.Warn;
 using NS.Bot.Shared.Models;
+using SteamQuery;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Timers;
 
 namespace NS.Bot.App
@@ -24,6 +28,7 @@ namespace NS.Bot.App
         private DiscordSocketClient _client;
         private static List<SocketGuild> guilds = new List<SocketGuild>();
         private static List<WarnSettings> warnSettings = new List<WarnSettings>();
+        private static readonly byte[] Request = { 0xFF, 0xFF, 0xFF, 0xFF, 0x54, 0x53, 0x6F, 0x75, 0x72, 0x63, 0x65, 0x20, 0x45, 0x6E, 0x67, 0x69, 0x6E, 0x65, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x00 };
         public static Task Main(string[] args) => new Program().MainAsync(args);
 
         public async Task MainAsync(string[] args)
@@ -108,6 +113,11 @@ namespace NS.Bot.App
             dataTimer.Elapsed += (sender, e) => WarnRemover(sender, e, warnService, guildService, logger);
             dataTimer.AutoReset = true;
             dataTimer.Start();
+
+            var updateTimer = new System.Timers.Timer(30000);
+            updateTimer.Elapsed += (sener, e) => UpdateStatus(sener, e);
+            updateTimer.AutoReset = true;
+            updateTimer.Start();
 
             _client.MessageReceived += (message) => RndMessagesDelete(message, radioSettingsService, logger);
             _client.UserVoiceStateUpdated += (user, before, after) => VoiceRemover(user, before, after, radioSettingsService, radioService, logger);
@@ -388,6 +398,13 @@ namespace NS.Bot.App
                     }
                 }
             }
+        }
+
+        private async Task UpdateStatus(object? sender, ElapsedEventArgs e)
+        {
+            var server = new GameServer("185.207.214.51:2325");
+            await server.PerformQueryAsync();
+            await _client.SetCustomStatusAsync(string.Format("Онлайн {0}/{1}", server.Information.OnlinePlayers, server.Information.MaxPlayers));
         }
     }
 }
