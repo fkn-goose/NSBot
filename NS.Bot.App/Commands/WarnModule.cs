@@ -292,6 +292,9 @@ namespace NS.Bot.App.Commands
             {
                 foreach (var guild in dsGuilds)
                 {
+                    if (guild == null)
+                        continue;
+
                     if (!WarnSettings.TryGetValue(Context.Guild.Id, out WarnSettings settings))
                     {
                         settings = await _warnSettingsService.GetWarnSettingsAsync(guild.Id);

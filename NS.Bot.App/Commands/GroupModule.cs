@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 using NS.Bot.BuisnessLogic.Interfaces;
 using NS.Bot.Shared.Entities.Group;
 using NS.Bot.Shared.Entities.Guild;
@@ -247,7 +248,7 @@ namespace NS.Bot.Commands.CommandModules
                 i++;
                 var member = groupMember.Member;
                 var discordUser = Context.Guild.GetUser(member.DiscordId);
-                if(discordUser == null)
+                if (discordUser == null)
                 {
                     var lonerGroup = await _groupService.GetGroupByEnum(GroupEnum.Loner, CurrentGuild);
                     groupMember.Group = lonerGroup;
@@ -274,17 +275,31 @@ namespace NS.Bot.Commands.CommandModules
             if (group.Leader != null)
             {
                 var groupLeaderGuildMember = await _guildMemberService.Get(group.Leader.Value);
-                var groupLeaderDiscrodUser = Context.Guild.GetUser(groupLeaderGuildMember.Member.DiscordId);
-                groupEmbed.AddField("Лидер группировки", string.Format("{0} ({1})", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username));
+                SocketGuildUser? groupLeaderDiscrodUser = null;
+
+                if (groupLeaderGuildMember != null)
+                    groupLeaderDiscrodUser = Context.Guild.GetUser(groupLeaderGuildMember.Member.DiscordId);
+                else 
+                {
+                    group.Leader = null;
+                    await _groupService.UpdateAsync(group);
+                }
+                if (groupLeaderDiscrodUser != null)
+                    groupEmbed.AddField("Лидер группировки", string.Format("{0} ({1})", MentionUtils.MentionUser(groupLeaderDiscrodUser.Id), groupLeaderDiscrodUser.Username));
+                else 
+                {
+                    group.Leader = null;
+                    await _groupService.UpdateAsync(group);
+                }
             }
 
             groupEmbed.AddField("Состав:", memberNames)
                       .WithColor(Color.Blue);
 
-            if(string.IsNullOrEmpty(nullmembers))
+            if (string.IsNullOrEmpty(nullmembers))
                 await FollowupAsync(embed: groupEmbed.Build(), ephemeral: false);
             else
-                await FollowupAsync(text: string.Format("Спискок ненайденных пользователей: {0}. Они были удалены из группировки.", nullmembers),embed: groupEmbed.Build(), ephemeral: false);
+                await FollowupAsync(text: string.Format("Спискок ненайденных пользователей: {0}. Они были удалены из группировки.", nullmembers), embed: groupEmbed.Build(), ephemeral: false);
         }
 
         [UserCommand("группировка игрока")]
