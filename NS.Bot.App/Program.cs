@@ -80,7 +80,6 @@ namespace NS.Bot.App
                     LogLevel = Discord.LogSeverity.Debug,
                     DefaultRunMode = Discord.Commands.RunMode.Async
                 }));
-
             });
         }
 
@@ -100,6 +99,7 @@ namespace NS.Bot.App
             var warnSettingsService = provider.GetService<IBaseService<WarnSettings>>();
             var guildService = provider.GetService<IBaseService<GuildEntity>>();
             var logger = provider.GetService<ILogToFileService>();
+            var appsettings = provider.GetService<AppsettingsModel>();
 
             await provider.GetRequiredService<InteractionHandler>().InitializeAsync();
 
@@ -114,7 +114,8 @@ namespace NS.Bot.App
             updateTimer.Elapsed += (sener, e) => UpdateStatus(sener, e);
             updateTimer.AutoReset = true;
             updateTimer.Start();
-
+            
+            _client.UserJoined += (arg) => UserJoined(arg, appsettings.Roles);
             _client.MessageReceived += (message) => RndMessagesDelete(message, radioSettingsService, logger);
             _client.UserVoiceStateUpdated += (user, before, after) => VoiceRemover(user, before, after, radioSettingsService, radioService, logger);
 
@@ -130,6 +131,18 @@ namespace NS.Bot.App
             await _client.StartAsync();
 
             await Task.Delay(-1);
+        }
+
+        private async Task UserJoined(SocketGuildUser arg, List<RolesContainer> roles)
+        {
+            var guildRoles = roles.FirstOrDefault(x=>x.RelatedGuildId == arg.Guild.Id);
+            if (guildRoles == null)
+                return;
+
+            if (guildRoles.NewPlayerRoleId == 0)
+                return;
+
+            await arg.AddRoleAsync(guildRoles.NewPlayerRoleId);
         }
 
         private async Task RndMessagesDelete(SocketMessage message, IRadioSettingsService radioSettingsService, ILogToFileService logger)

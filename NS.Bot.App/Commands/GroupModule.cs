@@ -316,7 +316,7 @@ namespace NS.Bot.Commands.CommandModules
             CurrentGuild = await _guildService.GetByDiscordId(Context.Guild.Id);
 
             var guildMember = await _guildMemberService.GetByDiscordIdAsync(user.Id, CurrentGuild.GuildId);
-            if (guildMember == null)
+            if (guildMember == null || guildMember.Group == null)
             {
                 await FollowupAsync("Игрок не состоит ни в одной группировке", ephemeral: true);
                 var member = await _memberService.GetByDiscordIdAsync(user.Id);

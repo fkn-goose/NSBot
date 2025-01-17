@@ -13,6 +13,7 @@ namespace NS.Bot.Shared.Models
         public string SteamAPIKey { get; set; }
         public List<TicketSettingsModel> TicketSettings { get; set; }
         public List<GuildData> GuildDatas { get; set; }
+        public List<RolesContainer> Roles { get; set; }
     }
     public class Logging
     {
@@ -36,4 +37,10 @@ namespace NS.Bot.Shared.Models
         public string NSBotToken { get; set; }
     }
 
+    public class RolesContainer
+    {
+        public string RelatedGuildName { get; set; }
+        public ulong RelatedGuildId { get; set; }
+        public ulong NewPlayerRoleId { get; set; }
+    }
 }

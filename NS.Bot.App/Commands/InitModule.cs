@@ -264,11 +264,11 @@ namespace NS.Bot.App.Commands
 
             await DeferAsync(ephemeral: true);
 
-            var allSettings = settings.TicketSettings;
-            if (allSettings == null)
-                allSettings = new List<TicketSettingsModel>();
+            var ticketSettings = settings.TicketSettings;
+            if (ticketSettings == null)
+                ticketSettings = new List<TicketSettingsModel>();
 
-            var curSettings = allSettings.FirstOrDefault(x => x.RelatedGuildId == Context.Guild.Id);
+            var curSettings = ticketSettings.FirstOrDefault(x => x.RelatedGuildId == Context.Guild.Id);
             var oldsettings = new TicketSettingsModel();
             bool isNew = false;
             if (curSettings == null)
@@ -313,14 +313,78 @@ namespace NS.Bot.App.Commands
             curSettings.ClosedTicketsCategoryId = closedTicketCategory != null ? closedTicketCategory.Id : curSettings.ClosedTicketsCategoryId;
 
             if (isNew)
-                allSettings.Add(curSettings);
+                ticketSettings.Add(curSettings);
             else
             {
-                allSettings.Remove(oldsettings);
-                allSettings.Add(curSettings);
+                ticketSettings.Remove(oldsettings);
+                ticketSettings.Add(curSettings);
             }
 
-            settings.TicketSettings = allSettings;
+            settings.TicketSettings = ticketSettings;
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic)
+            };
+            File.WriteAllText(filePath, JsonSerializer.Serialize(settings, options));
+            _config.Reload();
+
+            await FollowupAsync("Настройки успешно сохранены", ephemeral: true);
+        }
+
+        [SlashCommand("gradeinit", "Инициализация ролей опыта")]
+        [RequireOwner]
+        public async Task InitRolesGrade([Summary("Роль_новичка")] IRole newPlayerRole)
+        {
+            var filePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+            string json = File.ReadAllText(filePath);
+
+            if (json == null)
+            {
+                await RespondAsync("Не найден appsettings.json", ephemeral: true);
+                return;
+            }
+
+            AppsettingsModel? settings = JsonSerializer.Deserialize<AppsettingsModel>(json);
+
+            if (settings == null)
+            {
+                await RespondAsync("Не считан appsettings.json", ephemeral: true);
+                return;
+            }
+
+            await DeferAsync(ephemeral: true);
+
+            var rolesSettings = settings.Roles;
+            if (rolesSettings == null)
+                rolesSettings = new List<RolesContainer>();
+
+            var curSettings = rolesSettings.FirstOrDefault(x => x.RelatedGuildId == Context.Guild.Id);
+            var oldsettings = new RolesContainer();
+            bool isNew = false;
+            if (curSettings == null)
+            {
+                isNew = true;
+                curSettings = new RolesContainer();
+            }
+            else
+                oldsettings = curSettings;
+
+            curSettings.RelatedGuildId = Context.Guild.Id;
+            curSettings.RelatedGuildName = Context.Guild.Name;
+
+            curSettings.NewPlayerRoleId = newPlayerRole.Id;
+
+            if (isNew)
+                rolesSettings.Add(curSettings);
+            else
+            {
+                rolesSettings.Remove(oldsettings);
+                rolesSettings.Add(curSettings);
+            }
+
+            settings.Roles = rolesSettings;
 
             var options = new JsonSerializerOptions
             {
